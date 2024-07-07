@@ -1,12 +1,12 @@
-import os
 import logging
-
-from app.autograder_classes import ProjectData
+import os
 
 import docker
 from docker import DockerClient
 from dotenv import load_dotenv
 from supabase import Client, create_client
+
+from app.autograder_classes import ProjectData
 
 load_dotenv()
 
