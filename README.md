@@ -1,6 +1,13 @@
 # IDE-Autograder
 
-This is an autograder.
+### This is an autograder.
+
+Repo configurations:
+
+- [pylint](.pylintrc) (linting)
+- unittest (unit testing)
+
+Python non-native modules are specified in [requirements.txt](requirements.txt)
 
 Terms:
 Student - Student output
@@ -13,6 +20,13 @@ Code and Sample Input produce Student.
 Student and Expected produce Diff.
 
 Running the API for development:
-`uvicorn app.main:app --reload`
+
+```
+uvicorn app.main:app --reload
+```
 
 TODO: how to build docker image on other machines
+TODO: make fastapi run on ssl cert. using self signed certificate
+TODO: Authenticate students.
+
+## EC2 Deployment steps

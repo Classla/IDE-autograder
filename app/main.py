@@ -1,31 +1,34 @@
-import logging
+import os
 from concurrent.futures import ThreadPoolExecutor
 
+from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI
 
 from app.autograder_classes import ProjectData
-from app.tasks import run_docker_job
+from app.logging_config import logger
+from app.tasks import input_output_autograder, unit_test_autograder
 
-logging.basicConfig(level=logging.INFO)
-
+load_dotenv()
 
 app: FastAPI = FastAPI()
 
 # Create a thread pool executor
-executor: ThreadPoolExecutor = ThreadPoolExecutor(max_workers=1)
+executor: ThreadPoolExecutor = ThreadPoolExecutor(
+    max_workers=int(os.environ.get("MAX_CONTAINERS"))
+)
 
 
 @app.post("/input_output/")
 async def input_output(project: ProjectData, background_tasks: BackgroundTasks) -> dict:
     """Autograding endpoint for input output"""
-    background_tasks.add_task(executor.submit, run_docker_job, project, "input_output")
-
-    return {"output": "Task started"}
+    background_tasks.add_task(executor.submit, input_output_autograder, project)
+    logger.info("input_output task queued.")
+    return {"output": "Task queued"}
 
 
 @app.post("/unit_test/")
 async def unit_test(project: ProjectData, background_tasks: BackgroundTasks) -> dict:
     """Autograding endpoint for unit tests"""
-    background_tasks.add_task(executor.submit, run_docker_job, project, "unit_test")
+    background_tasks.add_task(executor.submit, unit_test_autograder, project)
 
     return {"output": "Task started"}

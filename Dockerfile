@@ -8,8 +8,6 @@ RUN apt-get update && \
     sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
 
-EXPOSE 22
-
 CMD ["/usr/sbin/sshd", "-D"]
 
 # Set the working directory in the container
@@ -17,6 +15,3 @@ WORKDIR /app
 
 # Install default packages. Unfortunately, this includes pydraw.
 RUN pip install --no-cache-dir pydraw 
-
-# Make port 80 available to the world outside this container
-EXPOSE 80
