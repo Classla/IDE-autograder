@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from supabase import Client, create_client
 
 from app.logging_config import logger
-from app.autograder_classes import ProjectData
+from app.autograder_classes import InputOutputRequestBody, UnitTestRequestBody
 from app.utils import colors
 
 load_dotenv()
@@ -75,7 +75,7 @@ def send_to_supabase(current_result: dict) -> None:
         raise Exception(error_message) from e
 
 
-def input_output_autograder(project_data: ProjectData) -> None:
+def input_output_autograder(project_data: InputOutputRequestBody) -> None:
     """
     Allocates a container, runs the autograding session inside, and send the output to supabase.
     """
@@ -129,7 +129,7 @@ def input_output_autograder(project_data: ProjectData) -> None:
     logger.info("Successfully wrote to table.")
 
 
-def unit_test_autograder(project_data: ProjectData) -> None:
+def unit_test_autograder(project_data: UnitTestRequestBody) -> None:
     """
     Allocates a container, runs the autograding session inside, and send the output to supabase.
     """
