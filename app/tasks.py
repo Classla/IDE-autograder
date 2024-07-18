@@ -36,9 +36,7 @@ def run_autograder_container() -> Container:
 
 def send_to_supabase(current_result: dict) -> None:
     """handler for updating the supabase table with container output."""
-    target_block_uuid: str = (
-        "001027e5-6793-4847-9861-1a6320ac4527"  # TODO: put the actual uuid
-    )
+    target_block_uuid: str = current_result["block_uuid"]
     try:
         target_row: dict = (
             supabase.table(AUTOGRADER_TABLE)
@@ -75,17 +73,21 @@ def send_to_supabase(current_result: dict) -> None:
         raise Exception(error_message) from e
 
 
-def input_output_autograder(project_data: InputOutputRequestBody) -> None:
+def input_output_autograder(submission: InputOutputRequestBody) -> None:
     """
     Allocates a container, runs the autograding session inside, and send the output to supabase.
     """
-    submission_data = project_data.files_data[0].content.replace('"', '\\"')
-    sample_input_data = project_data.files_data[1].content.replace('"', '\\"')
-    expected_output_data = project_data.files_data[2].content.replace('"', '\\"')
+    expected_stdout: str = submission.input_output_files.expected_stdout.replace(
+        '"', '\\"'
+    )
+    expected_stderr: str = submission.input_output_files.expected_stderr.replace(
+        '"', '\\"'
+    )
+    teacher_stdin: str = submission.input_output_files.teacher_stdin.replace('"', '\\"')
 
-    submission_path = "/app/submission.py"
-    sample_input_path = "/app/input.txt"
-    expected_output_path = "/app/expected_output.txt"
+    expected_stdout_path = "expected_stdout.txt"
+    expected_stderr_path = "expected_stderr.txt"
+    teacher_stdin_path = "teacher_stdin.txt"
 
     try:
         # start up container
@@ -93,17 +95,21 @@ def input_output_autograder(project_data: InputOutputRequestBody) -> None:
         container.start()
 
         # write data to files
-        container.exec_run(f"sh -c 'echo \"{submission_data}\" > {submission_path}'")
         container.exec_run(
-            f"sh -c 'echo \"{sample_input_data}\" > {sample_input_path}'"
+            f"sh -c 'echo \"{expected_stdout}\" > {expected_stdout_path}'"
         )
         container.exec_run(
-            f"sh -c 'echo \"{expected_output_data}\" > {expected_output_path}'"
+            f"sh -c 'echo \"{expected_stderr}\" > {expected_stderr_path}'"
         )
+        container.exec_run(f"sh -c 'echo \"{teacher_stdin}\" > {teacher_stdin_path}'")
+
+        for file_name, file_contents in submission.student_files.items():
+            file_contents = file_contents.replace('"', '\\"')
+            container.exec_run(f"sh -c 'echo \"{file_contents}\" > module/{file_name}'")
 
         # run script
         exec_result = container.exec_run(
-            f"bash -c 'diff <(python {submission_path} < {sample_input_path}) {expected_output_path}'"
+            f"bash -c 'diff {'-b' if submission.input_output_config.ignore_whitespace else ''} <(python module/{submission.IDE_settings.entry_file} < {teacher_stdin_path}) {expected_stdout_path}'"
         )
 
         logger.info(exec_result.output.decode("utf-8"))
@@ -123,19 +129,20 @@ def input_output_autograder(project_data: InputOutputRequestBody) -> None:
         {
             "autograde_mode": "input_output",
             "stdout": exec_result.output.decode("utf-8"),
+            "block_uuid": submission.block_uuid,
         }
     )
 
     logger.info("Successfully wrote to table.")
 
 
-def unit_test_autograder(project_data: UnitTestRequestBody) -> None:
+def unit_test_autograder(submission: UnitTestRequestBody) -> None:
     """
     Allocates a container, runs the autograding session inside, and send the output to supabase.
     """
 
-    submission_data = project_data.files_data[0].content.replace('"', '\\"')
-    test_data = project_data.files_data[1].content.replace('"', '\\"')
+    submission_data = submission.files_data[0].content.replace('"', '\\"')
+    test_data = submission.files_data[1].content.replace('"', '\\"')
 
     with open(
         "app/container_scripts/unit_test_driver.py", "r", encoding="utf-8"

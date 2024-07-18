@@ -13,5 +13,7 @@ CMD ["/usr/sbin/sshd", "-D"]
 # Set the working directory in the container
 WORKDIR /app
 
+RUN mkdir module
+
 # Install default packages. Unfortunately, this includes pydraw.
 RUN pip install --no-cache-dir pydraw 
