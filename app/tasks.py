@@ -1,13 +1,14 @@
 import os
+from uuid import UUID
 
 import docker
-from docker.models.containers import Container
 from docker import DockerClient
+from docker.models.containers import Container
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
-from app.logging_config import logger
 from app.autograder_classes import InputOutputRequestBody, UnitTestRequestBody
+from app.logging_config import logger
 from app.utils import colors
 
 load_dotenv()
@@ -34,9 +35,9 @@ def run_autograder_container() -> Container:
     )
 
 
-def send_to_supabase(current_result: dict) -> None:
+def send_to_supabase(current_result: dict, block_uuid: UUID) -> None:
     """handler for updating the supabase table with container output."""
-    target_block_uuid: str = current_result["block_uuid"]
+    target_block_uuid = str(block_uuid)
     try:
         target_row: dict = (
             supabase.table(AUTOGRADER_TABLE)
@@ -77,6 +78,7 @@ def input_output_autograder(submission: InputOutputRequestBody) -> None:
     """
     Allocates a container, runs the autograding session inside, and send the output to supabase.
     """
+
     expected_stdout: str = submission.input_output_files.expected_stdout.replace(
         '"', '\\"'
     )
@@ -85,34 +87,53 @@ def input_output_autograder(submission: InputOutputRequestBody) -> None:
     )
     teacher_stdin: str = submission.input_output_files.teacher_stdin.replace('"', '\\"')
 
-    expected_stdout_path = "expected_stdout.txt"
-    expected_stderr_path = "expected_stderr.txt"
-    teacher_stdin_path = "teacher_stdin.txt"
-
     try:
         # start up container
         container = run_autograder_container()
         container.start()
 
         # write data to files
-        container.exec_run(
-            f"sh -c 'echo \"{expected_stdout}\" > {expected_stdout_path}'"
-        )
-        container.exec_run(
-            f"sh -c 'echo \"{expected_stderr}\" > {expected_stderr_path}'"
-        )
-        container.exec_run(f"sh -c 'echo \"{teacher_stdin}\" > {teacher_stdin_path}'")
+        container.exec_run(f"sh -c 'echo \"{expected_stdout}\" > expected_stdout.txt'")
+        container.exec_run(f"sh -c 'echo \"{expected_stderr}\" > expected_stderr.txt'")
+        container.exec_run(f"sh -c 'echo \"{teacher_stdin}\" > teacher_stdin.txt'")
 
         for file_name, file_contents in submission.student_files.items():
             file_contents = file_contents.replace('"', '\\"')
             container.exec_run(f"sh -c 'echo \"{file_contents}\" > module/{file_name}'")
 
-        # run script
-        exec_result = container.exec_run(
-            f"bash -c 'diff {'-b' if submission.input_output_config.ignore_whitespace else ''} <(python module/{submission.IDE_settings.entry_file} < {teacher_stdin_path}) {expected_stdout_path}'"
+        script_execution = container.exec_run(
+            f"bash -c 'timeout {submission.timeout}s python module/{submission.IDE_settings.entry_file} < teacher_stdin.txt >student_stdout.txt 2>student_stderr.txt'"
         )
 
-        logger.info(exec_result.output.decode("utf-8"))
+        if script_execution.exit_code == 124:
+            send_to_supabase(
+                {
+                    "autograde_mode": "input_output",
+                    "msg": "Time limit exceeded.",
+                    "points": 0,
+                },
+                block_uuid=submission.block_uuid,
+            )
+
+        # run script
+        stdout_diff_exec_result = container.exec_run(
+            f"bash -c 'diff {'-b' if submission.input_output_config.ignore_whitespace else ''} student_stdout.txt expected_stdout.txt'"
+        )
+
+        stderr_diff_exec_result = container.exec_run(
+            f"bash -c 'diff {'-b' if submission.input_output_config.ignore_whitespace else ''} student_stderr.txt expected_stderr.txt'"
+        )
+
+        student_stdout = container.exec_run(
+            "bash -c 'cat student_stdout.txt'"
+        ).output.decode("utf-8")
+        student_stderr = container.exec_run(
+            "bash -c 'cat student_stderr.txt'"
+        ).output.decode("utf-8")
+        stdout_diff = stdout_diff_exec_result.output.decode("utf-8")
+        stderr_diff = stderr_diff_exec_result.output.decode("utf-8")
+
+        logger.info(f"output: {stdout_diff}")
 
     except Exception as e:
         logger.error(f"Docker container failed: {e}")
@@ -128,9 +149,18 @@ def input_output_autograder(submission: InputOutputRequestBody) -> None:
     send_to_supabase(
         {
             "autograde_mode": "input_output",
-            "stdout": exec_result.output.decode("utf-8"),
-            "block_uuid": submission.block_uuid,
-        }
+            "msg": "Input/Output tests ran successfully.",
+            "stdout_diff": stdout_diff,
+            "stderr_diff": stderr_diff,
+            "student_stdout": student_stdout,
+            "student_stderr": student_stderr,
+            "points": (
+                submission.autograding_config.total_points
+                if stdout_diff == stderr_diff == ""
+                else 0
+            ),
+        },
+        block_uuid=submission.block_uuid,
     )
 
     logger.info("Successfully wrote to table.")
@@ -187,7 +217,8 @@ def unit_test_autograder(submission: UnitTestRequestBody) -> None:
         {
             "autograde_mode": "unit_test",
             "stdout": exec_result.output.decode("utf-8"),
-        }
+        },
+        block_uuid=submission.block_uuid,
     )
 
     logger.info("Successfully wrote to table.")

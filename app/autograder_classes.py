@@ -10,10 +10,9 @@ class AutograderRequestBody(BaseModel):
         entry_file: str = Field(..., description="Entry file for the autograder")
 
     class AutogradingConfig(BaseModel):
-        total_points: int = Field(..., description="Total points for grading")
+        total_points: int = Field(..., ge=0, description="Total points for grading")
         point_calculation: Literal["all_or_nothing", "fractional"] = Field(
             ...,
-            ge=0,
             description="Point calculation method, either 'all_or_nothing' or 'fractional'",
         )
 
