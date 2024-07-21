@@ -1,10 +1,9 @@
 import unittest
+import sys
 
 # List of test filenames (without the .py extension)
-test_files = [
-    "tests.test_main",
-    "tests.test_another",  # Add other test files here
-]
+test_files = sys.argv[1:]
+
 
 # Create a test suite
 suite = unittest.TestSuite()
@@ -12,7 +11,7 @@ suite = unittest.TestSuite()
 # Load tests from each test file
 loader = unittest.TestLoader()
 for test_file in test_files:
-    suite.addTests(loader.loadTestsFromName(test_file))
+    suite.addTests(loader.loadTestsFromName(f"{test_file}"))
 
 # Run the test suite
 runner = unittest.TextTestRunner()

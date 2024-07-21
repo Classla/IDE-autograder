@@ -1,7 +1,15 @@
 from typing import Dict, Literal, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
+import os
+
+
+def check_file_extensions(cls, value):
+    for filename in value.keys():
+        if not os.path.splitext(filename)[1]:  # Check if there's a file extension
+            raise ValueError(f"File '{filename}' does not have a valid file extension.")
+    return value
 
 
 class AutograderRequestBody(BaseModel):
@@ -26,6 +34,11 @@ class AutograderRequestBody(BaseModel):
         ...,
         description="Dictionary of student code files such that the the filename maps to the file contents",
     )
+
+    _check_student_files = validator("student_files", allow_reuse=True)(
+        check_file_extensions
+    )
+
     IDE_settings: IDESettings = Field(..., description="IDE settings")
     autograding_config: AutogradingConfig = Field(
         ..., description="Autograding configuration"
@@ -54,4 +67,8 @@ class UnitTestRequestBody(AutograderRequestBody):
     unit_test_config: Optional[Dict]  # empty for now
     unit_test_files: Dict[str, str] = Field(
         ..., description="Dictionary of unit test files"
+    )
+
+    _check_unit_test_files = validator("unit_test_files", allow_reuse=True)(
+        check_file_extensions
     )

@@ -18,6 +18,12 @@ executor: ThreadPoolExecutor = ThreadPoolExecutor(
 )
 
 
+@app.get("/")
+async def get() -> dict:
+    """Autograding endpoint for input output"""
+    return {"msg": "Autograder API"}
+
+
 @app.post("/input_output/")
 async def input_output(
     project: InputOutputRequestBody, background_tasks: BackgroundTasks

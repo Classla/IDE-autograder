@@ -151,18 +151,18 @@ def unit_test_autograder(submission: UnitTestRequestBody) -> None:
     """
 
     with open(
-        "app/container_scripts/unit_test_driver.py", "r", encoding="utf-8"
+        "app/container_scripts/alternative_driver.py", "r", encoding="utf-8"
     ) as file:
         unit_test_driver_data = file.read().replace('"', '\\"')
 
-    unit_test_driver_path = "/app/unit_test_driver.py"
+    unit_test_driver_path = "unit_test_driver.py"
     try:
         # start up container
         container = AutograderContainerRuntime()
 
         # write data to files
         container.write_file(unit_test_driver_data, unit_test_driver_path)
-        container.write_file("init", "app/__init__.py")
+        container.write_file("init", "module/__init__.py")
 
         # Copy student submission files
         for file_name, file_contents in submission.student_files.items():
@@ -174,9 +174,10 @@ def unit_test_autograder(submission: UnitTestRequestBody) -> None:
             file_contents = file_contents.replace('"', '\\"')
             container.write_file(file_contents, f"module/{file_name}")
 
+        container.run_bash("cd module")
         # run script
         exec_result = container.run_bash(
-            f"python {unit_test_driver_path}"
+            f"python {unit_test_driver_path} {' '.join([file_name for file_name, file_contents in submission.unit_test_files.items()])}"
         ).output.decode("utf-8")
 
         logger.info(f"Unit test output: {colors.YELLOW}{exec_result}")
