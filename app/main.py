@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI
 
-from app.autograder_classes import InputOutputRequestBody, UnitTestRequestBody
+from app.autograder_requests import InputOutputRequestBody, UnitTestRequestBody
 from app.logging_config import logger
 from app.tasks import input_output_autograder, unit_test_autograder
 

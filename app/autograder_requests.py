@@ -7,7 +7,9 @@ from pydantic import BaseModel, Field
 class AutograderRequestBody(BaseModel):
     class IDESettings(BaseModel):
         language: str = Field(..., description="Programming language")
-        entry_file: str = Field(..., description="Entry file for the autograder")
+        entry_file: str = Field(
+            ..., description="Entry file for the autograder"
+        )  # this may not be needed for a unit test
 
     class AutogradingConfig(BaseModel):
         total_points: int = Field(..., ge=0, description="Total points for grading")
@@ -48,10 +50,8 @@ class InputOutputRequestBody(AutograderRequestBody):
 
 
 class UnitTestRequestBody(AutograderRequestBody):
-    class UnitTestFiles(BaseModel):
-        filename: str = Field(..., description="Contents of the unit test file")
 
     unit_test_config: Optional[Dict]  # empty for now
-    unit_test_files: Dict[str, UnitTestFiles] = Field(
+    unit_test_files: Dict[str, str] = Field(
         ..., description="Dictionary of unit test files"
     )

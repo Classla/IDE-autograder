@@ -1,7 +1,7 @@
 import unittest
 
 # pylint: disable=import-error
-from submission import add  # type: ignore
+from add import add
 
 
 class TestMyModule(unittest.TestCase):
