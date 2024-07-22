@@ -2,8 +2,9 @@ input_output = {
     "block_uuid": "7ceb06fa-5d44-4fc2-8aa9-2aaa8b743e65",
     "timeout": 10,
     "student_files": {
-        "main.py": 'from mod import apple; print(f"hello, {input()}! number: {apple}")',
+        "main.py": 'from mod import apple; from modules.module import orange; print(f"hello, {input()}! number: {apple} {orange}")',
         "mod.py": "apple = 42",
+        "modules": {"module.py": "orange = 69"},
     },
     "IDE_settings": {"language": "python", "entry_file": "main.py"},
     "autograding_config": {

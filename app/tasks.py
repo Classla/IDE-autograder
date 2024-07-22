@@ -1,14 +1,14 @@
 import os
+from typing import Union
 from uuid import UUID
 
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
-from app.autograder_requests import InputOutputRequestBody, UnitTestRequestBody
 from app.autograder_container_runtime import AutograderContainerRuntime
+from app.autograder_requests import InputOutputRequestBody, UnitTestRequestBody
 from app.logging_config import logger
 from app.utils import colors
-
 
 load_dotenv()
 
@@ -59,6 +59,20 @@ def send_to_supabase(current_result: dict, block_uuid: UUID) -> None:
         raise Exception(error_message) from e
 
 
+def write_file_tree(
+    container: AutograderContainerRuntime, directory: str, children: Union[str, dict]
+):
+    """Helper function for writing files and directories into the container given a directory."""
+    for name, contents in children.items():
+        if type(contents) == str:
+            container.write_file(contents.replace('"', '\\"'), f"{directory}{name}")
+        elif type(contents) == dict:
+            container.run_bash(f"mkdir {directory}{name}/")
+            write_file_tree(container, f"{directory}{name}/", contents)
+        else:
+            raise Exception()
+
+
 def input_output_autograder(submission: InputOutputRequestBody) -> None:
     """
     Allocates a container, runs the autograding session inside, and send the output to supabase.
@@ -84,10 +98,8 @@ def input_output_autograder(submission: InputOutputRequestBody) -> None:
         container.write_file(expected_stderr, "expected_stderr.txt")
         container.write_file(teacher_stdin, "teacher_stdin.txt")
 
-        for file_name, file_contents in submission.student_files.items():
-            container.write_file(
-                file_contents.replace('"', '\\"'), f"module/{file_name}"
-            )
+        write_file_tree(container, "module/", submission.student_files)
+        # TODO: convert this to class method.
 
         script_execution = container.run_bash(
             f"timeout {submission.timeout}s python module/{entry_file} < teacher_stdin.txt >student_stdout.txt 2>student_stderr.txt"
@@ -168,9 +180,11 @@ def unit_test_autograder(submission: UnitTestRequestBody) -> None:
         container.write_file(unit_test_driver_data, unit_test_driver_path)
 
         # Copy student submission files
-        for file_name, file_contents in submission.student_files.items():
-            file_contents = file_contents.replace('"', '\\"')
-            container.write_file(file_contents, f"module/{file_name}")
+        # for file_name, file_contents in submission.student_files.items():
+        #     file_contents = file_contents.replace('"', '\\"')
+        #     container.write_file(file_contents, f"module/{file_name}")
+
+        write_file_tree(container, "module/", submission.student_files)
 
         # Copy unit test files
         for file_name, file_contents in submission.unit_test_files.items():

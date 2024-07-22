@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Literal, Optional
+from typing import Dict, Literal, Optional, Union
 from uuid import UUID
 
 from pydantic import BaseModel, Field, validator
@@ -33,14 +33,10 @@ class AutograderRequestBody(BaseModel):
         ..., description="UUID for the block that the code lives on."
     )
     timeout: int = Field(..., ge=1, le=30, description="Timeout in seconds")
-    student_files: Dict[str, str] = Field(
+    student_files: Dict[str, Union[str, Dict]] = Field(
         ...,
         description="Dictionary of student code files such that the the filename maps to the file contents",
-    )
-
-    _check_student_files = validator("student_files", allow_reuse=True)(
-        check_file_extensions
-    )
+    )  # TODO: Validate this attribute
 
     IDE_settings: IDESettings = Field(..., description="IDE settings")
     autograding_config: AutogradingConfig = Field(

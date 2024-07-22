@@ -27,6 +27,7 @@ class AutograderContainerRuntime:
         self._container.start()
 
     def run_bash(self, cmd: str) -> ExecResult:
+        """Executes (cmd) in the container and returns the execution result."""
         exec_result = self._container.exec_run(f"bash -c '{cmd}'")
         return exec_result
 
@@ -35,10 +36,12 @@ class AutograderContainerRuntime:
             logger.error("Command failed. To debug, fill in this error message.")
 
     def write_file(self, contents: str, path: str) -> None:
+        """writes (contents) into the file at (path)"""
         exec_result = self._container.exec_run(f"sh -c 'echo \"{contents}\" > {path}'")
         self._check_success(exec_result)
 
     def read_file(self, path: str) -> str:
+        """returns the contents of the file located at (path)"""
         exec_result = self._container.exec_run(f"bash -c 'cat {path}'")
         self._check_success(exec_result)
         return exec_result.output.decode("utf-8")
