@@ -12,15 +12,18 @@ docker_client: DockerClient = docker.from_env()
 
 
 class AutograderContainerRuntime:
-    def __init__(self):
-        self._container: Container = docker_client.containers.run(
-            "autograder",  # Docker image name
-            detach=True,  # run asynchronously
-            stdin_open=True,
-            mem_limit=os.environ.get(
-                "DOCKER_MEMORY_LIMIT"
-            ),  # swap limit default capacity 2x vram limit
-        )
+    def __init__(self, environment: str):
+        if environment == "python":
+            self._container: Container = docker_client.containers.run(
+                "autograder",  # Docker image name
+                detach=True,  # run asynchronously
+                stdin_open=True,
+                mem_limit=os.environ.get(
+                    "DOCKER_MEMORY_LIMIT"
+                ),  # swap limit default capacity 2x vram limit
+            )
+        elif environment == "java":
+            raise Exception()
         self._container.start()
 
     def run_bash(self, cmd: str) -> ExecResult:

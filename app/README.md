@@ -46,3 +46,15 @@ app/
   }
 }
 ```
+
+## Container Runtime File Structure
+
+```
+app/
+├── unit_test_driver.py
+├── module/
+│   └── ...                 # Student files
+├── tests/
+│   └── ...                 # Test files
+└── ...
+```

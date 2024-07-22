@@ -14,6 +14,9 @@ CMD ["/usr/sbin/sshd", "-D"]
 WORKDIR /app
 
 RUN mkdir module
+RUN mkdir tests
+
+ENV PYTHONPATH=/app/module:/app/tests
 
 # Install default packages. Unfortunately, this includes pydraw.
 RUN pip install --no-cache-dir pydraw 

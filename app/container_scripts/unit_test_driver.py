@@ -1,40 +1,27 @@
-"""This script is for the container. It is not to be run in app."""
-
-# pylint: disable=import-error
-
-import inspect
 import unittest
-import unit_tests  # type: ignore
+import sys
 
+# List of test filenames (without the .py extension)
+test_files = sys.argv[1:]
 
-def count_tests(class_ref):
-    """_summary_"""
-    loader = unittest.TestLoader()
-    suite = loader.loadTestsFromTestCase(class_ref)
+# Create a test suite
+suite = unittest.TestSuite()
 
-    runner = unittest.TextTestRunner()
-    result = runner.run(suite)
+# Load tests from each test file
+loader = unittest.TestLoader()
+for test_file in test_files:
+    suite.addTests(loader.loadTestsFromName(f"{test_file}"))
 
-    total_tests = result.testsRun
-    passed_tests = total_tests - len(result.failures) - len(result.errors)
+# Run the test suite
+runner = unittest.TextTestRunner()
+result = runner.run(suite)
 
-    if total_tests == 0:
-        fraction_passed = 0
-    else:
-        fraction_passed = passed_tests / total_tests
+# Calculate the number of tests passed
+num_tests = result.testsRun
+num_tests_passed = num_tests - len(result.failures) - len(result.errors)
 
-    print(f"Total tests: {total_tests}")
-    print(f"Passed tests: {passed_tests}")
-    print(f"Fraction passed: {fraction_passed:.2f}")
+with open("num_tests.txt", "w") as file:
+    file.write(str(num_tests))
 
-
-if __name__ == "__main__":
-    class_names = [
-        name for name, obj in inspect.getmembers(unit_tests) if inspect.isclass(obj)
-    ]
-
-    if len(class_names) == 0:
-        raise ValueError("No test classes detected.")
-
-    for class_name in class_names:
-        count_tests(getattr(unit_tests, class_name))
+with open("num_tests_passed.txt", "w") as file:
+    file.write(str(num_tests_passed))

@@ -26,10 +26,6 @@ uvicorn app.main:app --reload
 ```
 
 TODO: how to build docker image on other machines
-TODO: make fastapi run on ssl cert. using self signed certificate
-TODO: Authenticate students.
-TODO: must validate student file names.
-TODO: container handler must error out if docker commands fail.
 TODO: delete orphan containers after script exits.
 
 ## EC2 Deployment steps

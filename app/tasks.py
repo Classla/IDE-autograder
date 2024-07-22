@@ -9,6 +9,7 @@ from app.autograder_container_runtime import AutograderContainerRuntime
 from app.logging_config import logger
 from app.utils import colors
 
+
 load_dotenv()
 
 supabase: Client = create_client(
@@ -70,10 +71,13 @@ def input_output_autograder(submission: InputOutputRequestBody) -> None:
         '"', '\\"'
     )
     teacher_stdin: str = submission.input_output_files.teacher_stdin.replace('"', '\\"')
+    entry_file = submission.IDE_settings.entry_file
 
     try:
         # start up container
-        container = AutograderContainerRuntime()
+        container = AutograderContainerRuntime(
+            environment=submission.IDE_settings.language
+        )
 
         # write data to files
         container.write_file(expected_stdout, "expected_stdout.txt")
@@ -86,7 +90,7 @@ def input_output_autograder(submission: InputOutputRequestBody) -> None:
             )
 
         script_execution = container.run_bash(
-            f"timeout {submission.timeout}s python module/{submission.IDE_settings.entry_file} < teacher_stdin.txt >student_stdout.txt 2>student_stderr.txt"
+            f"timeout {submission.timeout}s python module/{entry_file} < teacher_stdin.txt >student_stdout.txt 2>student_stderr.txt"
         )
 
         if script_execution.exit_code == 124:
@@ -98,6 +102,7 @@ def input_output_autograder(submission: InputOutputRequestBody) -> None:
                 },
                 block_uuid=submission.block_uuid,
             )
+
         else:
             # run script
             stdout_diff_exec_result = container.run_bash(
@@ -115,34 +120,31 @@ def input_output_autograder(submission: InputOutputRequestBody) -> None:
 
             logger.info(f"output: {stdout_diff}")
 
+            send_to_supabase(
+                {
+                    "autograde_mode": "input_output",
+                    "msg": "Input/Output tests ran successfully.",
+                    "stdout_diff": stdout_diff,
+                    "stderr_diff": stderr_diff,
+                    "student_stdout": student_stdout,
+                    "student_stderr": student_stderr,
+                    "points": (
+                        submission.autograding_config.total_points
+                        if stdout_diff == stderr_diff == ""
+                        else 0
+                    ),
+                },
+                block_uuid=submission.block_uuid,
+            )
+
+        logger.info("Successfully wrote to table.")
+
     except Exception as e:
         logger.error(f"Docker container failed: {e}")
-        raise Exception(
-            f"An error occured during the execution of a docker container: {e}"
-        ) from e
 
     finally:
         # dispose container
         del container
-
-    send_to_supabase(
-        {
-            "autograde_mode": "input_output",
-            "msg": "Input/Output tests ran successfully.",
-            "stdout_diff": stdout_diff,
-            "stderr_diff": stderr_diff,
-            "student_stdout": student_stdout,
-            "student_stderr": student_stderr,
-            "points": (
-                submission.autograding_config.total_points
-                if stdout_diff == stderr_diff == ""
-                else 0
-            ),
-        },
-        block_uuid=submission.block_uuid,
-    )
-
-    logger.info("Successfully wrote to table.")
 
 
 def unit_test_autograder(submission: UnitTestRequestBody) -> None:
@@ -151,18 +153,19 @@ def unit_test_autograder(submission: UnitTestRequestBody) -> None:
     """
 
     with open(
-        "app/container_scripts/alternative_driver.py", "r", encoding="utf-8"
+        "app/container_scripts/unit_test_driver.py", "r", encoding="utf-8"
     ) as file:
         unit_test_driver_data = file.read().replace('"', '\\"')
 
     unit_test_driver_path = "unit_test_driver.py"
     try:
         # start up container
-        container = AutograderContainerRuntime()
+        container = AutograderContainerRuntime(
+            environment=submission.IDE_settings.language
+        )
 
         # write data to files
         container.write_file(unit_test_driver_data, unit_test_driver_path)
-        container.write_file("init", "module/__init__.py")
 
         # Copy student submission files
         for file_name, file_contents in submission.student_files.items():
@@ -172,32 +175,55 @@ def unit_test_autograder(submission: UnitTestRequestBody) -> None:
         # Copy unit test files
         for file_name, file_contents in submission.unit_test_files.items():
             file_contents = file_contents.replace('"', '\\"')
-            container.write_file(file_contents, f"module/{file_name}")
+            container.write_file(file_contents, f"tests/{file_name}")
 
-        container.run_bash("cd module")
-        # run script
-        exec_result = container.run_bash(
-            f"python {unit_test_driver_path} {' '.join([file_name for file_name, file_contents in submission.unit_test_files.items()])}"
-        ).output.decode("utf-8")
+        # run unit tests
+        unit_test_results = container.run_bash(
+            f"timeout {submission.timeout}s python {unit_test_driver_path} {' '.join([file_name.split('.')[0] for file_name, file_contents in submission.unit_test_files.items()])}"
+        )
 
-        logger.info(f"Unit test output: {colors.YELLOW}{exec_result}")
+        if unit_test_results.exit_code == 124:
+            send_to_supabase(
+                {
+                    "autograde_mode": "unit_test",
+                    "msg": "Time limit exceeded.",
+                    "points": 0,
+                },
+                block_uuid=submission.block_uuid,
+            )
+
+        else:
+            num_tests = int(container.read_file("num_tests.txt"))
+            num_tests_passed = int(container.read_file("num_tests_passed.txt"))
+
+            if submission.autograding_config.point_calculation == "fractional":
+                points = (
+                    num_tests_passed / num_tests
+                ) * submission.autograding_config.total_points
+            else:
+                points = (
+                    submission.autograding_config.total_points
+                    if (num_tests == num_tests_passed)
+                    else 0
+                )
+
+            logger.info(
+                f"Unit test output: {colors.YELLOW}{unit_test_results.output.decode('utf-8')}{colors.RESET}"
+            )
+            send_to_supabase(
+                {
+                    "autograde_mode": "unit_test",
+                    "unit_test_results": unit_test_results.output.decode("utf-8"),
+                    "points": points,
+                },
+                block_uuid=submission.block_uuid,
+            )
+
+        logger.info("Successfully wrote to table.")
     except Exception as e:
         logger.error(
             f"An error occured during the execution of a docker container: {e}"
         )
-        raise Exception(
-            f"An error occured during the execution of a docker container: {e}"
-        ) from e
     finally:
         # container no longer in use
         del container
-
-    send_to_supabase(
-        {
-            "autograde_mode": "unit_test",
-            "stdout": exec_result.output.decode("utf-8"),
-        },
-        block_uuid=submission.block_uuid,
-    )
-
-    logger.info("Successfully wrote to table.")

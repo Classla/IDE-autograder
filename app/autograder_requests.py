@@ -1,11 +1,12 @@
+import os
 from typing import Dict, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, validator
-import os
 
 
 def check_file_extensions(cls, value):
+    """Verify certain fields are valid files"""
     for filename in value.keys():
         if not os.path.splitext(filename)[1]:  # Check if there's a file extension
             raise ValueError(f"File '{filename}' does not have a valid file extension.")
@@ -14,7 +15,9 @@ def check_file_extensions(cls, value):
 
 class AutograderRequestBody(BaseModel):
     class IDESettings(BaseModel):
-        language: str = Field(..., description="Programming language")
+        language: Literal["python", "java"] = Field(
+            ..., description="Programming language"
+        )
         entry_file: str = Field(
             ..., description="Entry file for the autograder"
         )  # this may not be needed for a unit test
