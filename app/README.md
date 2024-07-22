@@ -47,14 +47,29 @@ app/
 }
 ```
 
-## Container Runtime File Structure
+## Container Runtime File Structure - Input/Output
+
+```
+app/
+├── expected_stdout.txt
+├── expected_stderr.txt
+├── teacher_stdin.txt
+├── module/
+|   ├── entry_file          # Entry file
+│   └── ...                 # Student files
+└── tests/                  # Empty tests directory
+```
+
+## Container Runtime File Structure - Unit Test
 
 ```
 app/
 ├── unit_test_driver.py
+├── num_tests.txt           # Unit test driver write the total tests to this file
+├── num_tests_passed.txt    # Unit test driver write the # of tests passed to this file
 ├── module/
 │   └── ...                 # Student files
-├── tests/
-│   └── ...                 # Test files
+├── tests/                  # Empty tests directory
+|   └── ...                 # Test files
 └── ...
 ```
