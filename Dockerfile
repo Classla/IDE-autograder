@@ -13,7 +13,7 @@ CMD ["/usr/sbin/sshd", "-D"]
 # Set the working directory in the container
 WORKDIR /app
 
-RUN mkdir module
+RUN mkdir src
 RUN mkdir tests
 
 ENV PYTHONPATH=/app/module:/app/tests

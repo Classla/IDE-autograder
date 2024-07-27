@@ -1,11 +1,10 @@
 import os
-from typing import Union
 from uuid import UUID
 
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
-from app.autograder_container_runtime import AutograderContainerRuntime
+from app.autograder_container_runtime import create_autograder_container_runtime
 from app.autograder_requests import InputOutputRequestBody, UnitTestRequestBody
 from app.logging_config import logger
 from app.utils import colors
@@ -59,21 +58,7 @@ def send_to_supabase(current_result: dict, block_uuid: UUID) -> None:
         raise Exception(error_message) from e
 
 
-def write_file_tree(
-    container: AutograderContainerRuntime, directory: str, children: Union[str, dict]
-):
-    """Helper function for writing files and directories into the container given a directory."""
-    for name, contents in children.items():
-        if type(contents) == str:
-            container.write_file(contents.replace('"', '\\"'), f"{directory}{name}")
-        elif type(contents) == dict:
-            container.run_bash(f"mkdir {directory}{name}/")
-            write_file_tree(container, f"{directory}{name}/", contents)
-        else:
-            raise Exception()
-
-
-def input_output_autograder(submission: InputOutputRequestBody) -> None:
+def run_input_output_container(submission: InputOutputRequestBody) -> dict:
     """
     Allocates a container, runs the autograding session inside, and send the output to supabase.
     """
@@ -85,12 +70,11 @@ def input_output_autograder(submission: InputOutputRequestBody) -> None:
         '"', '\\"'
     )
     teacher_stdin: str = submission.input_output_files.teacher_stdin.replace('"', '\\"')
-    entry_file = submission.IDE_settings.entry_file
 
     try:
         # start up container
-        container = AutograderContainerRuntime(
-            environment=submission.IDE_settings.language
+        container = create_autograder_container_runtime(
+            submission.IDE_settings.language
         )
 
         # write data to files
@@ -98,25 +82,21 @@ def input_output_autograder(submission: InputOutputRequestBody) -> None:
         container.write_file(expected_stderr, "expected_stderr.txt")
         container.write_file(teacher_stdin, "teacher_stdin.txt")
 
-        write_file_tree(container, "module/", submission.student_files)
+        container.write_file_tree("src/", submission.student_files)
         # TODO: convert this to class method.
 
-        script_execution = container.run_bash(
-            f"timeout {submission.timeout}s python module/{entry_file} < teacher_stdin.txt >student_stdout.txt 2>student_stderr.txt"
+        script_execution = container.run_code(
+            timeout=submission.timeout, entry_file=submission.IDE_settings.entry_file
         )
 
         if script_execution.exit_code == 124:
-            send_to_supabase(
-                {
-                    "autograde_mode": "input_output",
-                    "msg": "Time limit exceeded.",
-                    "points": 0,
-                },
-                block_uuid=submission.block_uuid,
-            )
+            return {
+                "autograde_mode": "input_output",
+                "msg": "Time limit exceeded.",
+                "points": 0,
+            }
 
         else:
-            # run script
             stdout_diff_exec_result = container.run_bash(
                 f"diff {'-b' if submission.input_output_config.ignore_whitespace else ''} student_stdout.txt expected_stdout.txt"
             )
@@ -132,24 +112,19 @@ def input_output_autograder(submission: InputOutputRequestBody) -> None:
 
             logger.info(f"output: {stdout_diff}")
 
-            send_to_supabase(
-                {
-                    "autograde_mode": "input_output",
-                    "msg": "Input/Output tests ran successfully.",
-                    "stdout_diff": stdout_diff,
-                    "stderr_diff": stderr_diff,
-                    "student_stdout": student_stdout,
-                    "student_stderr": student_stderr,
-                    "points": (
-                        submission.autograding_config.total_points
-                        if stdout_diff == stderr_diff == ""
-                        else 0
-                    ),
-                },
-                block_uuid=submission.block_uuid,
-            )
-
-        logger.info("Successfully wrote to table.")
+            return {
+                "autograde_mode": "input_output",
+                "msg": "Input/Output tests ran successfully.",
+                "stdout_diff": stdout_diff,
+                "stderr_diff": stderr_diff,
+                "student_stdout": student_stdout,
+                "student_stderr": student_stderr,
+                "points": (
+                    submission.autograding_config.total_points
+                    if stdout_diff == stderr_diff == ""
+                    else 0
+                ),
+            }
 
     except Exception as e:
         logger.error(f"Docker container failed: {e}")
@@ -163,28 +138,16 @@ def unit_test_autograder(submission: UnitTestRequestBody) -> None:
     """
     Allocates a container, runs the autograding session inside, and send the output to supabase.
     """
-
-    with open(
-        "app/container_scripts/unit_test_driver.py", "r", encoding="utf-8"
-    ) as file:
-        unit_test_driver_data = file.read().replace('"', '\\"')
-
-    unit_test_driver_path = "unit_test_driver.py"
     try:
         # start up container
-        container = AutograderContainerRuntime(
-            environment=submission.IDE_settings.language
+        container = create_autograder_container_runtime(
+            submission.IDE_settings.language
         )
 
         # write data to files
-        container.write_file(unit_test_driver_data, unit_test_driver_path)
+        container.load_unit_test_driver()
 
-        # Copy student submission files
-        # for file_name, file_contents in submission.student_files.items():
-        #     file_contents = file_contents.replace('"', '\\"')
-        #     container.write_file(file_contents, f"module/{file_name}")
-
-        write_file_tree(container, "module/", submission.student_files)
+        container.write_file_tree("src/", submission.student_files)
 
         # Copy unit test files
         for file_name, file_contents in submission.unit_test_files.items():
@@ -192,8 +155,8 @@ def unit_test_autograder(submission: UnitTestRequestBody) -> None:
             container.write_file(file_contents, f"tests/{file_name}")
 
         # run unit tests
-        unit_test_results = container.run_bash(
-            f"timeout {submission.timeout}s python {unit_test_driver_path} {' '.join([file_name.split('.')[0] for file_name, file_contents in submission.unit_test_files.items()])}"
+        unit_test_results = container.run_unit_tests(
+            timeout=submission.timeout, test_files=submission.unit_test_files
         )
 
         if unit_test_results.exit_code == 124:

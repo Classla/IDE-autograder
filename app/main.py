@@ -4,9 +4,13 @@ from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI
 
-from app.autograder_requests import InputOutputRequestBody, UnitTestRequestBody
+from app.autograder_requests import (
+    AutograderRequestBody,
+    InputOutputRequestBody,
+    UnitTestRequestBody,
+)
 from app.logging_config import logger
-from app.tasks import input_output_autograder, unit_test_autograder
+from app.tasks import unit_test_autograder, run_input_output_container, send_to_supabase
 
 load_dotenv()
 
@@ -16,6 +20,17 @@ app: FastAPI = FastAPI()
 executor: ThreadPoolExecutor = ThreadPoolExecutor(
     max_workers=int(os.environ.get("MAX_CONTAINERS"))
 )
+
+
+def autograder_job(submission: AutograderRequestBody) -> None:
+    if isinstance(submission, InputOutputRequestBody):
+        result = run_input_output_container(submission)
+        send_to_supabase(result, submission.block_uuid)
+        logger.info("Successfully wrote to table.")
+    elif isinstance(submission, UnitTestRequestBody):
+        pass
+    else:
+        raise TypeError()
 
 
 @app.get("/")
@@ -29,7 +44,7 @@ async def input_output(
     project: InputOutputRequestBody, background_tasks: BackgroundTasks
 ) -> dict:
     """Autograding endpoint for input output"""
-    background_tasks.add_task(executor.submit, input_output_autograder, project)
+    background_tasks.add_task(executor.submit, autograder_job, project)
     logger.info("input_output task queued.")
     return {"output": "Task queued"}
 
