@@ -16,7 +16,7 @@ WORKDIR /app
 RUN mkdir src
 RUN mkdir tests
 
-ENV PYTHONPATH=/app/module:/app/tests
+ENV PYTHONPATH=/app/src:/app/tests
 
 # Install default packages. Unfortunately, this includes pydraw.
 RUN pip install --no-cache-dir pydraw 

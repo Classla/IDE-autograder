@@ -16,8 +16,11 @@ class AutograderContainerRuntime(ABC):
         self._container.start()
 
     def _check_success(self, exec_result: ExecResult) -> None:
-        if exec_result.exit_code != 0:
-            logger.error("Command failed. To debug, fill in this error message.")
+        exit_code = exec_result.exit_code
+        output = exec_result.output
+        if exit_code != 0:
+            logger.error(f"Command failed with exit code {exit_code}: \n{output}")
+            raise RuntimeError()
 
     def run_bash(self, cmd: str) -> ExecResult:
         """Executes (cmd) in the container and returns the execution result."""

@@ -10,7 +10,11 @@ from app.autograder_requests import (
     UnitTestRequestBody,
 )
 from app.logging_config import logger
-from app.tasks import unit_test_autograder, run_input_output_container, send_to_supabase
+from app.tasks import (
+    run_input_output_container,
+    run_unit_test_container,
+    send_to_supabase,
+)
 
 load_dotenv()
 
@@ -25,12 +29,13 @@ executor: ThreadPoolExecutor = ThreadPoolExecutor(
 def autograder_job(submission: AutograderRequestBody) -> None:
     if isinstance(submission, InputOutputRequestBody):
         result = run_input_output_container(submission)
-        send_to_supabase(result, submission.block_uuid)
-        logger.info("Successfully wrote to table.")
     elif isinstance(submission, UnitTestRequestBody):
-        pass
+        result = run_unit_test_container(submission)
     else:
         raise TypeError()
+
+    send_to_supabase(result, submission.block_uuid)
+    logger.info("Successfully wrote to table.")
 
 
 @app.get("/")
@@ -54,6 +59,6 @@ async def unit_test(
     project: UnitTestRequestBody, background_tasks: BackgroundTasks
 ) -> dict:
     """Autograding endpoint for unit tests"""
-    background_tasks.add_task(executor.submit, unit_test_autograder, project)
-
-    return {"output": "Task started"}
+    background_tasks.add_task(executor.submit, autograder_job, project)
+    logger.info("unit_test task queued.")
+    return {"output": "Task queued"}

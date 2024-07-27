@@ -110,7 +110,7 @@ def run_input_output_container(submission: InputOutputRequestBody) -> dict:
             student_stdout = container.read_file("student_stdout.txt")
             student_stderr = container.read_file("student_stderr.txt")
 
-            logger.info(f"output: {stdout_diff}")
+            logger.info(f"stdout diff: {stdout_diff}")
 
             return {
                 "autograde_mode": "input_output",
@@ -134,7 +134,7 @@ def run_input_output_container(submission: InputOutputRequestBody) -> dict:
         del container
 
 
-def unit_test_autograder(submission: UnitTestRequestBody) -> None:
+def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
     """
     Allocates a container, runs the autograding session inside, and send the output to supabase.
     """
@@ -160,14 +160,11 @@ def unit_test_autograder(submission: UnitTestRequestBody) -> None:
         )
 
         if unit_test_results.exit_code == 124:
-            send_to_supabase(
-                {
-                    "autograde_mode": "unit_test",
-                    "msg": "Time limit exceeded.",
-                    "points": 0,
-                },
-                block_uuid=submission.block_uuid,
-            )
+            return {
+                "autograde_mode": "unit_test",
+                "msg": "Time limit exceeded.",
+                "points": 0,
+            }
 
         else:
             num_tests = int(container.read_file("num_tests.txt"))
@@ -187,16 +184,12 @@ def unit_test_autograder(submission: UnitTestRequestBody) -> None:
             logger.info(
                 f"Unit test output: {colors.YELLOW}{unit_test_results.output.decode('utf-8')}{colors.RESET}"
             )
-            send_to_supabase(
-                {
-                    "autograde_mode": "unit_test",
-                    "unit_test_results": unit_test_results.output.decode("utf-8"),
-                    "points": points,
-                },
-                block_uuid=submission.block_uuid,
-            )
+            return {
+                "autograde_mode": "unit_test",
+                "unit_test_results": unit_test_results.output.decode("utf-8"),
+                "points": points,
+            }
 
-        logger.info("Successfully wrote to table.")
     except Exception as e:
         logger.error(
             f"An error occured during the execution of a docker container: {e}"
