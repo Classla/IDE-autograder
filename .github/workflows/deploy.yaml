@@ -18,12 +18,10 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
-      - name: Remove existing app directory on server
+      - name: Delete existing app directory on server
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
-            if [ -d "/app" ]; then
-              rm -rf /app
-            fi
+            sudo rm -rf /app
           EOF
 
       - name: Copy app directory to server
