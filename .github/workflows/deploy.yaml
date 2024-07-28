@@ -34,7 +34,7 @@ jobs:
       - name: Rebuilding docker images
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
-            bash /IDE-autograder/autograder.classla.org/build_docker_images.sh
+            bash IDE-autograder/autograder.classla.org/build_docker_images.sh
           EOF
 
       - name: Restart FastAPI application
