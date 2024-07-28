@@ -1,7 +1,7 @@
 Set up repository and virtual environement
 
 ```
-sudo apt-get update # For Ubuntu
+sudo apt-get update
 sudo apt-get install python3 python3-pip -y
 sudo apt-get install git -y
 git clone git@github.com:Classla/IDE-autograder.git
