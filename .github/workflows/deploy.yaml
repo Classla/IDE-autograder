@@ -21,7 +21,7 @@ jobs:
       - name: Delete existing app directory on server
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
-            sudo rm -rf /app
+            rm -rf /app
           EOF
 
       - name: Copy app directory to server
