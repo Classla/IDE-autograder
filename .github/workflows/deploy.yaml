@@ -41,4 +41,5 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
             sudo systemctl restart fastapi
+            sudo systemctl reload nginx
           EOF
