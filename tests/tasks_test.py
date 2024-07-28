@@ -18,15 +18,20 @@ class TestContainerRuntime(unittest.TestCase):
 
     def test_input_output_python(self):
         result = run_input_output_container(convert_input_output(input_output_python))
+        print(result)
+        assert result["points"] == 12
 
     def test_unit_test_python(self):
         result = run_unit_test_container(convert_unit_test(unit_test_python))
+        assert result["points"] == 12
 
     def test_input_output_java(self):
         result = run_input_output_container(convert_input_output(input_output_java))
+        assert result["points"] == 12
 
-    # def test_unit_test_java(self):
-    #     self._test_unit_test(unit_test_java)
+    def test_unit_test_java(self):
+        result = run_unit_test_container(convert_unit_test(unit_test_java))
+        assert result["points"] == 12
 
 
 if __name__ == "__main__":

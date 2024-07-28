@@ -10,7 +10,8 @@ app/
 ├── utils/
 │   ├── colors.py           # Custom module for colored logging
 │   └── ...
-├── autograder_classes.py   # Classes to validate request bodies
+├── autograder_container_runtime.py   # Runtime classes for each container environment
+├── autograder_requests.py  # Classes to validate request bodies
 ├── logging_config.py       # Logging configuration
 ├── main.py                 # Main FastAPI application entry point
 ├── tasks.py                # Background tasks

@@ -17,11 +17,16 @@ CMD ["/usr/sbin/sshd", "-D"]
 # Set the working directory in the container
 WORKDIR /app
 
+# Install necessary tools for compiling (e.g., `wget` for downloading JUnit)
+RUN apt-get update && apt-get install -y wget
+
+# Download JUnit and dependencies
+RUN wget https://search.maven.org/remotecontent?filepath=org/junit/platform/junit-platform-console-standalone/1.7.0/junit-platform-console-standalone-1.7.0.jar -O junit-platform-console-standalone.jar
 # Create a module directory
 RUN mkdir src
 RUN mkdir tests
 
-# Set environment variable for module path
-# ENV MODULE_PATH=/app/module:/app/tests
+# # Set environment variable for module path
+# # ENV MODULE_PATH=/app/module:/app/tests
 
 

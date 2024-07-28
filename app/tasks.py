@@ -5,9 +5,10 @@ from dotenv import load_dotenv
 from supabase import Client, create_client
 
 from app.autograder_container_runtime import create_autograder_container_runtime
-from app.autograder_requests import InputOutputRequestBody, UnitTestRequestBody
+from app.autograder_request_bodies import InputOutputRequestBody, UnitTestRequestBody
 from app.logging_config import logger
 from app.utils import colors
+import traceback
 
 load_dotenv()
 
@@ -128,6 +129,7 @@ def run_input_output_container(submission: InputOutputRequestBody) -> dict:
 
     except Exception as e:
         logger.error(f"Docker container failed: {e}")
+        raise Exception() from e
 
     finally:
         # dispose container
@@ -194,6 +196,7 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
         logger.error(
             f"An error occured during the execution of a docker container: {e}"
         )
+        raise Exception("Docker runtime failed.") from e
     finally:
-        # container no longer in use
+        # Container garbage collection
         del container

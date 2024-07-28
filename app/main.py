@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI
 
-from app.autograder_requests import (
+from app.autograder_request_bodies import (
     AutograderRequestBody,
     InputOutputRequestBody,
     UnitTestRequestBody,
@@ -27,12 +27,21 @@ executor: ThreadPoolExecutor = ThreadPoolExecutor(
 
 
 def autograder_job(submission: AutograderRequestBody) -> None:
+    """Controller for the autograder job"""
     if isinstance(submission, InputOutputRequestBody):
-        result = run_input_output_container(submission)
+        execute_container_runtime = run_input_output_container
     elif isinstance(submission, UnitTestRequestBody):
-        result = run_unit_test_container(submission)
+        execute_container_runtime = run_unit_test_container
     else:
         raise TypeError()
+
+    try:
+        result = execute_container_runtime(submission)
+    except Exception:
+        result = {
+            "autograde_mode": "unit_test",
+            "msg": "Autograder failed to run.",
+        }
 
     send_to_supabase(result, submission.block_uuid)
     logger.info("Successfully wrote to table.")

@@ -2,7 +2,7 @@ import json
 
 from pydantic import TypeAdapter
 
-from app.autograder_requests import InputOutputRequestBody, UnitTestRequestBody
+from app.autograder_request_bodies import InputOutputRequestBody, UnitTestRequestBody
 
 
 def convert_input_output(submission: dict):

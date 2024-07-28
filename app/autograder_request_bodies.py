@@ -5,6 +5,9 @@ from uuid import UUID
 from pydantic import BaseModel, Field, validator
 
 
+# TODO: Add more validation criteria
+
+
 def check_file_extensions(cls, value):
     """Verify certain fields are valid files"""
     for filename in value.keys():
