@@ -1,23 +1,59 @@
-# name: Deploy to EC2
+name: Deploy to Server
 
-# on:
-#   push:
-#     branches:
-#       - main
+on:
+  push:
+    branches:
+      - main
 
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-#       - name: Setup SSH
-#         uses: webfactory/ssh-agent@v0.5.3
-#         with:
-#           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
-#       - name: Copy app directory to server
-#         run: |
-#           rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./app/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/path/to/remote/app/
+      - name: Copy app directory to server
+        run: |
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./app/ ubuntu@${{ secrets.SSH_HOST }}:/app
+
+      - name: Copy requirements.txt to server
+        run: |
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./requirements.txt ubuntu@${{ secrets.SSH_HOST }}:/requirements.txt
+
+      - name: Copy dockerfiles directory to server
+        run: |
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./dockerfiles/ ubuntu@${{ secrets.SSH_HOST }}:/dockerfiles
+
+      - name: Install requirements on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
+            python3 -m venv autograder_venv
+            source autograder_env/bin/activate
+            pip install -r requirements.txt
+          EOF
+
+      - name: Remove existing Docker images on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
+            docker image prune -a -f
+          EOF
+
+      - name: Build Docker images on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
+            for dockerfile in /dockerfiles/*; do
+              docker build -f $dockerfile -t $(basename $dockerfile .Dockerfile) .
+            done
+          EOF
+
+      - name: Restart FastAPI application
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
+            sudo systemctl restart fastapi
+          EOF

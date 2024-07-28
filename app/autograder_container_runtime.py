@@ -139,7 +139,7 @@ def create_autograder_container_runtime(environment: str) -> AutograderContainer
     if environment == "python":
         return AutograderContainerRuntimePython(
             docker_client.containers.run(
-                "autograder",  # Docker image name
+                "dockerfile_python",  # Docker image name
                 detach=True,  # run asynchronously
                 stdin_open=True,
                 mem_limit=os.environ.get(
@@ -150,7 +150,7 @@ def create_autograder_container_runtime(environment: str) -> AutograderContainer
     elif environment == "java":
         return AutograderContainerRuntimeJava(
             docker_client.containers.run(
-                "autograder_java",  # Docker image name
+                "dockerfile_java",  # Docker image name
                 detach=True,  # run asynchronously
                 stdin_open=True,
                 mem_limit=os.environ.get(
