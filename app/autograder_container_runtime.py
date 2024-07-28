@@ -27,10 +27,10 @@ class AutograderContainerRuntime(ABC):
         exec_result = self._container.exec_run(f"bash -c '{cmd}'")
         return exec_result
 
-    def list_dir(self, directory: str = "") -> str:
-        return self._container.exec_run(f"bash -c 'ls {directory}'").output.decode(
-            "utf-8"
-        )
+    # def list_dir(self, directory: str = "") -> str:
+    #     return self._container.exec_run(f"bash -c 'ls {directory}'").output.decode(
+    #         "utf-8"
+    #     )
 
     def write_file(self, contents: str, path: str) -> None:
         """writes (contents) into the file at (path)"""
@@ -83,8 +83,7 @@ class AutograderContainerRuntimePython(AutograderContainerRuntime):
         with open(
             "app/unit_test_drivers/unit_test_driver.py", "r", encoding="utf-8"
         ) as file:
-            unit_test_driver_data = file.read().replace('"', '\\"')
-        self.write_file(unit_test_driver_data, "unit_test_driver.py")
+            self.write_file(file.read().replace('"', '\\"'), "unit_test_driver.py")
 
     def run_unit_tests(self, timeout: int, test_files: dict) -> ExecResult:
         return self.run_bash(
@@ -108,8 +107,7 @@ class AutograderContainerRuntimeJava(AutograderContainerRuntime):
         with open(
             "app/unit_test_drivers/UnitTestDriver.java", "r", encoding="utf-8"
         ) as file:
-            unit_test_driver_data = file.read().replace('"', '\\"')
-        self.write_file(unit_test_driver_data, "UnitTestDriver.java")
+            self.write_file(file.read().replace('"', '\\"'), "UnitTestDriver.java")
 
     def run_unit_tests(self, timeout: int, test_files: dict) -> ExecResult:
         # build and compile java code
@@ -119,15 +117,10 @@ class AutograderContainerRuntimeJava(AutograderContainerRuntime):
             )
         )
 
-        logger.error(self.list_dir("bin"))
-
-        result = self.run_bash(
+        # Run tests
+        return self.run_bash(
             f"timeout {timeout}s java -cp bin:junit-platform-console-standalone.jar UnitTestDriver {' '.join([file_name.split('.')[0] for file_name, file_contents in test_files.items()])}"
         )
-
-        self._check_success(result)
-
-        return result
 
 
 load_dotenv()

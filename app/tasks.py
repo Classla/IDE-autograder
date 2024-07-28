@@ -8,7 +8,6 @@ from app.autograder_container_runtime import create_autograder_container_runtime
 from app.autograder_request_bodies import InputOutputRequestBody, UnitTestRequestBody
 from app.logging_config import logger
 from app.utils import colors
-import traceback
 
 load_dotenv()
 
@@ -84,7 +83,6 @@ def run_input_output_container(submission: InputOutputRequestBody) -> dict:
         container.write_file(teacher_stdin, "teacher_stdin.txt")
 
         container.write_file_tree("src/", submission.student_files)
-        # TODO: convert this to class method.
 
         script_execution = container.run_code(
             timeout=submission.timeout, entry_file=submission.IDE_settings.entry_file
@@ -146,12 +144,12 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
             submission.IDE_settings.language
         )
 
-        # write data to files
         container.load_unit_test_driver()
 
+        # Write student files
         container.write_file_tree("src/", submission.student_files)
 
-        # Copy unit test files
+        # Write test files
         for file_name, file_contents in submission.unit_test_files.items():
             file_contents = file_contents.replace('"', '\\"')
             container.write_file(file_contents, f"tests/{file_name}")

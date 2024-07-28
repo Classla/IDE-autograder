@@ -36,10 +36,10 @@ class TestUploadEndpoint(unittest.TestCase):
 class TestAutograderJob(unittest.TestCase):
     """TODO: mock these tests"""
 
-    def test_autograder_job_input_output_python(self):
+    def test_autograder_job_input_output(self):
         autograder_job(convert_input_output(input_output_python))
 
-    def test_autograder_job_unit_test_python(self):
+    def test_autograder_job_unit_test(self):
         autograder_job(convert_unit_test(unit_test_python))
 
 

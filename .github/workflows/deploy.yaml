@@ -18,41 +18,26 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
-      - name: Delete existing app directory on server
+      - name: Pull latest changes and install requirements on server
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
-            rm -rf /app
-          EOF
+            #  Pull repository changes
+            cd IDE-autograder
+            git pull origin main
 
-      - name: Copy app directory to server
-        run: |
-          rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./app ubuntu@${{ secrets.SSH_HOST }}:/
-
-      - name: Copy requirements.txt to server
-        run: |
-          rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./requirements.txt ubuntu@${{ secrets.SSH_HOST }}:/requirements.txt
-
-      - name: Copy dockerfiles directory to server
-        run: |
-          rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./dockerfiles/ ubuntu@${{ secrets.SSH_HOST }}:/dockerfiles
-
-      - name: Install requirements on server
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
+            # Set up the virtual environment and install requirements
             python3 -m venv autograder_venv
             source autograder_env/bin/activate
             pip install -r requirements.txt
           EOF
 
-      - name: Remove existing Docker images on server
+      - name: Rebuilding docker images
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
+            # Remove pre-existing images
             docker image prune -a -f
-          EOF
 
-      - name: Build Docker images on server
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
+            # Rebuild all docker images
             for dockerfile in /dockerfiles/*; do
               docker build -f $dockerfile -t $(basename $dockerfile .Dockerfile) .
             done
