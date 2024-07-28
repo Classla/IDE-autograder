@@ -18,9 +18,17 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
+      - name: Remove existing app directory on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
+            if [ -d "/app" ]; then
+              rm -rf /app
+            fi
+          EOF
+
       - name: Copy app directory to server
         run: |
-          rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./app/ ubuntu@${{ secrets.SSH_HOST }}:/app
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./app ubuntu@${{ secrets.SSH_HOST }}:/
 
       - name: Copy requirements.txt to server
         run: |
