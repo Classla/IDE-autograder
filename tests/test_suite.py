@@ -1,5 +1,5 @@
 import unittest
-from main_test import TestUploadEndpoint
+from .main_test import TestUploadEndpoint
 
 
 def github_suite():

@@ -26,8 +26,8 @@ jobs:
 
       - name: Run test suite
         env:
-          PYTHONPATH: ${{ github.workspace }}/app
-        run: python tests/test_suite.py
+          PYTHONPATH: ${{ github.workspace }}/app:${{ github.workspace }}/tests
+        run: python -m unittest tests.test_suite
 
   deploy:
     runs-on: ubuntu-latest
