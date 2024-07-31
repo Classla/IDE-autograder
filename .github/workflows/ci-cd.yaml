@@ -25,7 +25,7 @@ jobs:
       - name: Build each Dockerfile
         run: |
           for dockerfile in $(ls dockerfiles/); do
-            image_name=$(basename $dockerfile)
+            image_name=$(basename $dockerfile | tr '[:upper:]' '[:lower:]')
             docker build -f dockerfiles/$dockerfile -t $image_name .
           done
 
