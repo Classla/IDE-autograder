@@ -2,11 +2,10 @@ import unittest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from utils.json_to_object import convert_input_output, convert_unit_test
 
 from app.main import app, autograder_job
 from test_resources.sample_request_bodies import input_output_python, unit_test_python
-
-from utils.json_to_object import convert_input_output, convert_unit_test
 
 
 class TestUploadEndpoint(unittest.TestCase):
