@@ -19,6 +19,16 @@ jobs:
         with:
           python-version: "3.9"
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build each Dockerfile
+        run: |
+          for dockerfile in $(ls dockerfiles/); do
+            image_name=$(basename $dockerfile)
+            docker build -f dockerfiles/$dockerfile -t $image_name .
+          done
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
