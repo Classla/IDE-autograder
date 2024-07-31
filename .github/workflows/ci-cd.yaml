@@ -32,7 +32,7 @@ jobs:
       - name: Run test suite
         env:
           PYTHONPATH: ${{ github.workspace }}/app:${{ github.workspace }}/tests
-        run: python -m unittest tests.test_suite
+        run: PYTHONPATH=tests python -m unittest tests.test_suite
 
   deploy:
     runs-on: ubuntu-latest
