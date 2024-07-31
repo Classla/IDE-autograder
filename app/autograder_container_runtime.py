@@ -10,6 +10,13 @@ from dotenv import load_dotenv
 from app.logging_config import logger
 
 
+DOCKER_MEMORY_LIMIT = (
+    os.environ.get("DOCKER_MEMORY_LIMIT")
+    if os.environ.get("DOCKER_MEMORY_LIMIT")
+    else "500m"
+)
+
+
 class AutograderContainerRuntime(ABC):
     def __init__(self, container: Container):
         self._container = container

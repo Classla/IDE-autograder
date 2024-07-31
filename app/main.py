@@ -22,7 +22,9 @@ app: FastAPI = FastAPI()
 
 # Create a thread pool executor
 executor: ThreadPoolExecutor = ThreadPoolExecutor(
-    max_workers=int(os.environ.get("MAX_CONTAINERS"))
+    max_workers=int(
+        os.environ.get("MAX_CONTAINERS") if os.environ.get("MAX_CONTAINERS") else 1
+    )
 )
 
 
