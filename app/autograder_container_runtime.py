@@ -119,7 +119,7 @@ class AutograderContainerRuntimeJava(AutograderContainerRuntime):
 
         # Run tests
         return self.run_bash(
-            f"timeout {timeout}s java -cp bin:junit-platform-console-standalone.jar UnitTestDriver {' '.join([file_name.split('.')[0] for file_name, file_contents in test_files.items()])}"
+            f"timeout {timeout}s java -cp bin:junit-platform-console-standalone.jar UnitTestDriver {' '.join([file_name.split('.')[0] for file_name, _ in test_files.items()])}"
         )
 
 
