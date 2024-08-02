@@ -103,7 +103,7 @@ class AutograderContainerRuntimeJava(AutograderContainerRuntime):
     def run_code(self, timeout: int, entry_file: str) -> ExecResult:
 
         # build and compile java code
-        self._check_success(self.run_bash("javac -d bin src/*.java"))
+        self._check_success(self.run_bash('javac -d bin $(find src -name "*.java")'))
 
         # execute
         return self.run_bash(
@@ -120,7 +120,7 @@ class AutograderContainerRuntimeJava(AutograderContainerRuntime):
         # build and compile java code
         self._check_success(
             self.run_bash(
-                "javac -cp .:junit-platform-console-standalone.jar -d bin src/*.java tests/*.java UnitTestDriver.java"
+                'javac -cp .:junit-platform-console-standalone.jar -d bin $(find src -name "*.java") tests/*.java UnitTestDriver.java'
             )
         )
 

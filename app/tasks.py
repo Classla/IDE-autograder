@@ -60,7 +60,8 @@ def send_to_supabase(current_result: dict, block_uuid: UUID) -> None:
 
 def run_input_output_container(submission: InputOutputRequestBody) -> dict:
     """
-    Allocates a container, runs the autograding session inside, and send the output to supabase.
+    Allocates a container, runs the autograding session inside,
+    and send the output to supabase.
     """
 
     expected_stdout: str = submission.input_output_files.expected_stdout.replace(

@@ -1,6 +1,5 @@
-Set up repository and virtual environement
+# Set up repository and virtual environement
 
-```
 sudo apt-get update
 sudo apt-get install python3 python3-pip -y
 sudo apt-get install git -y
@@ -10,11 +9,9 @@ sudo apt install python3.12-venv
 python3 -m venv autograder_env
 source autograder_env/bin/activate
 pip install -r requirements.txt
-```
 
-Install docker
+# Install docker
 
-```
 sudo apt-get install \
  apt-transport-https \
  ca-certificates \
@@ -28,17 +25,13 @@ sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io -y
 sudo usermod -aG docker $USER
 newgrp docker
-```
 
-Set up nginx reverse proxy
-
-```
+# Set up nginx reverse proxy
 
 sudo apt-get install nginx -y
 sudo nano /etc/nginx/sites-available/fastapi
-```
 
-```
+sudo cat > /etc/nginx/sites-available/fastapi <<EOF
 server {
 listen 80;
 server_name autograder.classla.org;
@@ -52,17 +45,13 @@ server_name autograder.classla.org;
     }
 
 }
-```
+EOF
 
-```
 sudo ln -s /etc/nginx/sites-available/fastapi /etc/nginx/sites-enabled
 sudo nginx -t # Test the configuration
 sudo systemctl restart nginx
-sudo nano /etc/systemd/system/fastapi.service
 
-```
-
-```
+sudo cat > /etc/systemd/system/fastapi.service <<EOF
 [Unit]
 Description=FastAPI application
 After=network.target
@@ -75,12 +64,9 @@ ExecStart=/home/ubuntu/IDE-autograder/autograder_env/bin/uvicorn app.main:app --
 
 [Install]
 WantedBy=multi-user.target
+EOF
 
-```
-
-Get ssl cert and start API
-
-```
+# Get ssl cert and start API
 
 sudo apt-get install certbot python3-certbot-nginx -y
 sudo certbot --nginx
@@ -88,5 +74,3 @@ sudo nginx -t # Test the Nginx configuration
 sudo systemctl reload nginx
 sudo systemctl start fastapi
 sudo systemctl enable fastapi
-
-```

@@ -18,5 +18,14 @@ Running the API for development:
 uvicorn app.main:app --reload
 ```
 
+### Building Docker Images Locally
+
+```bash
+for dockerfile in $(ls dockerfiles/); do
+    image_name=$(basename $dockerfile | tr '[:upper:]' '[:lower:]')
+    docker build -f dockerfiles/$dockerfile -t $image_name .
+done
+```
+
 TODO: how to build docker image on other machines
 TODO: delete orphan containers after script exits.
