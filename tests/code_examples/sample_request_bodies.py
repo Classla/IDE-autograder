@@ -42,10 +42,14 @@ timeout_code = {
 }
 
 
-with open("tests/code_examples/add.py", "r", encoding="utf-8") as file:
+with open("tests/code_examples/python/add.py", "r", encoding="utf-8") as file:
     script_python = file.read()
-with open("tests/code_examples/test_add.py", "r", encoding="utf-8") as file:
+with open("tests/code_examples/python/add_flawed.py", "r", encoding="utf-8") as file:
+    script_flawed_python = file.read()
+with open("tests/code_examples/python/test_add.py", "r", encoding="utf-8") as file:
     test_python = file.read()
+with open("tests/code_examples/python/test_add2.py", "r", encoding="utf-8") as file:
+    test_python2 = file.read()
 
 unit_test_python = {
     "block_uuid": block_uuid,
@@ -57,9 +61,20 @@ unit_test_python = {
         "point_calculation": "fractional",
     },
     "unit_test_config": {},
-    "unit_test_files": {
-        "test_add.py": test_python,
+    "unit_test_files": {"test_add.py": test_python, "test_add2.py": test_python2},
+}
+
+unit_test_flawed_python = {
+    "block_uuid": block_uuid,
+    "timeout": timeout,
+    "student_files": {"add.py": script_flawed_python},
+    "IDE_settings": {"language": "python", "entry_file": "main.py"},
+    "autograding_config": {
+        "total_points": 12,
+        "point_calculation": "fractional",
     },
+    "unit_test_config": {},
+    "unit_test_files": {"test_add.py": test_python, "test_add2.py": test_python2},
 }
 
 input_output_java = {
@@ -84,10 +99,14 @@ input_output_java = {
         "teacher_stdin": "apples",
     },
 }
-with open("tests/code_examples/Add.java", "r", encoding="utf-8") as file:
+with open("tests/code_examples/java/Add.java", "r", encoding="utf-8") as file:
     script_java = file.read()
-with open("tests/code_examples/TestAdd.java", "r", encoding="utf-8") as file:
+with open("tests/code_examples/java/AddFlawed.java", "r", encoding="utf-8") as file:
+    script_flawed_java = file.read()
+with open("tests/code_examples/java/TestAdd.java", "r", encoding="utf-8") as file:
     test_java = file.read()
+with open("tests/code_examples/java/TestAdd2.java", "r", encoding="utf-8") as file:
+    test_java2 = file.read()
 
 unit_test_java = {
     "block_uuid": block_uuid,
@@ -99,7 +118,18 @@ unit_test_java = {
         "point_calculation": "fractional",
     },
     "unit_test_config": {},
-    "unit_test_files": {
-        "TestAdd.java": test_java,
+    "unit_test_files": {"TestAdd.java": test_java, "TestAdd2.java": test_java2},
+}
+
+unit_test_flawed_java = {
+    "block_uuid": block_uuid,
+    "timeout": timeout,
+    "student_files": {"Add.java": script_flawed_java},
+    "IDE_settings": {"language": "java", "entry_file": "bruh"},
+    "autograding_config": {
+        "total_points": 12,
+        "point_calculation": "fractional",
     },
+    "unit_test_config": {},
+    "unit_test_files": {"TestAdd.java": test_java, "TestAdd2.java": test_java2},
 }

@@ -1,0 +1,1 @@
+print(f"bruh  {input()}")
