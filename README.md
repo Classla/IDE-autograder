@@ -1,24 +1,21 @@
 # IDE-Autograder
 
-### This is an autograder.
+## This is an autograder.
 
 Repo configurations:
 
 - [pylint](.pylintrc) (linting)
 - unittest (unit testing)
 
-Python non-native modules are specified in [requirements.txt](requirements.txt)
+## Running Locally
 
-Code and Sample Input produce Student.
-Student and Expected produce Diff.
+### Install Dependencies.
 
-Running the API for development:
-
-```
-uvicorn app.main:app --reload
+```sh
+pip install -r requirements.txt
 ```
 
-### Building Docker Images Locally
+### Build all docker containers.
 
 ```bash
 for dockerfile in $(ls dockerfiles/); do
@@ -27,5 +24,8 @@ for dockerfile in $(ls dockerfiles/); do
 done
 ```
 
-TODO: how to build docker image on other machines
-TODO: delete orphan containers after script exits.
+### Start the FastAPI server.
+
+```sh
+uvicorn app.main:app --reload
+```
