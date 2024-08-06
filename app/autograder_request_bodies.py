@@ -17,13 +17,7 @@ def check_file_extensions(cls, value):
 
 
 class AutograderRequestBody(BaseModel):
-    class IDESettings(BaseModel):
-        language: Literal["python", "java"] = Field(
-            ..., description="Programming language"
-        )
-        entry_file: str = Field(
-            ..., description="Entry file for the autograder"
-        )  # this may not be needed for a unit test
+    language: Literal["python", "java"] = Field(..., description="Programming language")
 
     class AutogradingConfig(BaseModel):
         total_points: int = Field(..., ge=0, description="Total points for grading")
@@ -41,7 +35,6 @@ class AutograderRequestBody(BaseModel):
         description="Dictionary of student code files such that the the filename maps to the file contents",
     )  # TODO: Validate this attribute
 
-    IDE_settings: IDESettings = Field(..., description="IDE settings")
     autograding_config: AutogradingConfig = Field(
         ..., description="Autograding configuration"
     )
@@ -57,6 +50,7 @@ class InputOutputRequestBody(AutograderRequestBody):
         ignore_whitespace: bool = Field(
             ..., description="Ignore whitespace in unit tests"
         )
+        entry_file: str = Field(..., description="Entry file for the autograder")
 
     input_output_files: InputOutputFiles = Field(..., description="Input-output files")
     input_output_config: InputOutputConfig = Field(

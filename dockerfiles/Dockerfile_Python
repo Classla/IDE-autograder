@@ -6,8 +6,6 @@ WORKDIR /app
 
 RUN apt-get update
 
-
-
 RUN mkdir src
 RUN mkdir tests
 

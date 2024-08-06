@@ -74,9 +74,7 @@ def run_input_output_container(submission: InputOutputRequestBody) -> dict:
 
     try:
         # start up container
-        container = create_autograder_container_runtime(
-            submission.IDE_settings.language
-        )
+        container = create_autograder_container_runtime(submission.language)
 
         # write data to files
         container.write_file(expected_stdout, "expected_stdout.txt")
@@ -86,7 +84,8 @@ def run_input_output_container(submission: InputOutputRequestBody) -> dict:
         container.write_file_tree("src/", submission.student_files)
 
         script_execution = container.run_code(
-            timeout=submission.timeout, entry_file=submission.IDE_settings.entry_file
+            timeout=submission.timeout,
+            entry_file=submission.input_output_config.entry_file,
         )
 
         if script_execution.exit_code == 124:
@@ -141,9 +140,7 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
     """
     try:
         # start up container
-        container = create_autograder_container_runtime(
-            submission.IDE_settings.language
-        )
+        container = create_autograder_container_runtime(submission.language)
 
         container.load_unit_test_driver()
 

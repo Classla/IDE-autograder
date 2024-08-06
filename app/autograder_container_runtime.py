@@ -142,9 +142,7 @@ def create_autograder_container_runtime(environment: str) -> AutograderContainer
                 "dockerfile_python",  # Docker image name
                 detach=True,  # run asynchronously
                 stdin_open=True,
-                mem_limit=os.environ.get(
-                    "DOCKER_MEMORY_LIMIT"
-                ),  # swap limit default capacity 2x vram limit
+                mem_limit=DOCKER_MEMORY_LIMIT,  # swap limit default capacity 2x vram limit
             )
         )
     elif environment == "java":
@@ -153,9 +151,7 @@ def create_autograder_container_runtime(environment: str) -> AutograderContainer
                 "dockerfile_java",  # Docker image name
                 detach=True,  # run asynchronously
                 stdin_open=True,
-                mem_limit=os.environ.get(
-                    "DOCKER_MEMORY_LIMIT"
-                ),  # swap limit default capacity 2x vram limit
+                mem_limit=DOCKER_MEMORY_LIMIT,  # swap limit default capacity 2x vram limit
             )
         )
     else:

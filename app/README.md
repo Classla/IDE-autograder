@@ -27,16 +27,13 @@ app/
   "student_files": {
     "filename": "file contents"
   },
-  "IDE_settings": {
-    "language": "python",
-    "entry_file": "main.py"
-  },
+  "language": "python",
   "autograding_config": {
     "total_points": 12,
     "point_calculation": "all_or_nothing or fractional"
   },
   "unit_test_config": {},
-  "input_output_config": { "ignore_whitespace": true },
+  "input_output_config": { "ignore_whitespace": true, "entry_file": "main.py" },
   "unit_test_files": {
     "filename": "file contents"
   },
