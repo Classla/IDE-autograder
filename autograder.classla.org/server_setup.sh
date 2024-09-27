@@ -33,8 +33,8 @@ sudo nano /etc/nginx/sites-available/fastapi
 
 sudo cat > /etc/nginx/sites-available/fastapi <<EOF
 server {
-listen 80;
-server_name autograder.classla.org;
+    listen 80;
+    server_name autograder.classla.org;
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -42,8 +42,24 @@ server_name autograder.classla.org;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-    }
 
+        # CORS headers
+        add_header 'Access-Control-Allow-Origin' 'http://localhost:3000' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
+        add_header 'Access-Control-Allow-Credentials' 'true' always;
+
+        # Preflight request handling
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' 'http://localhost:3000';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range';
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=utf-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+    }
 }
 EOF
 
