@@ -57,7 +57,7 @@ def autograder_job(submission: AutograderRequestBody) -> None:
 @app.get("/")
 async def get() -> dict:
     """Autograding endpoint for input output"""
-    return {"msg": "Autograder API"}
+    return {"msg": "Autograder API with FastAPI"}
 
 @app.post("/input_output/")
 async def input_output(
