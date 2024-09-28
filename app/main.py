@@ -1,8 +1,9 @@
 import os
 from concurrent.futures import ThreadPoolExecutor
+
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+
 from app.autograder_request_bodies import (
     AutograderRequestBody,
     InputOutputRequestBody,
@@ -19,21 +20,13 @@ load_dotenv()
 
 app: FastAPI = FastAPI()
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Adjust this to match your localhost port
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # Create a thread pool executor
 executor: ThreadPoolExecutor = ThreadPoolExecutor(
     max_workers=int(
         os.environ.get("MAX_CONTAINERS") if os.environ.get("MAX_CONTAINERS") else 1
     )
 )
+
 
 def autograder_job(submission: AutograderRequestBody) -> None:
     """Controller for the autograder job"""
@@ -51,13 +44,16 @@ def autograder_job(submission: AutograderRequestBody) -> None:
             "autograde_mode": "unit_test",
             "msg": "Autograder failed to run.",
         }
+
     send_to_supabase(result, submission.block_uuid)
     logger.info("Successfully wrote to table.")
+
 
 @app.get("/")
 async def get() -> dict:
     """Autograding endpoint for input output"""
-    return {"msg": "Autograder API with FastAPI"}
+    return {"msg": "Autograder API ver 2"}
+
 
 @app.post("/input_output/")
 async def input_output(
@@ -67,6 +63,7 @@ async def input_output(
     background_tasks.add_task(executor.submit, autograder_job, project)
     logger.info("input_output task queued.")
     return {"output": "Task queued"}
+
 
 @app.post("/unit_test/")
 async def unit_test(
