@@ -58,7 +58,7 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
-      - name: Server setup lines
+      - name: Initial server setup lines
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST }} << 'EOF'
             if [ ! -d "IDE-autograder" ]; then
@@ -72,8 +72,7 @@ jobs:
             sudo apt-get install python3 python3-pip -y
             sudo apt-get install git -y
 
-            pip install virtualenv
-            virtualenv autograder_env
+            python -m venv autograder_env
             source autograder_env/bin/activate
             pip install -r requirements.txt
 
@@ -121,8 +120,6 @@ jobs:
           sudo systemctl reload nginx
           sudo systemctl start fastapi
           sudo systemctl enable fastapi
-
-
           EOF
 
       - name: Pull latest changes and install requirements on server
