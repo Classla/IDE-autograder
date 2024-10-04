@@ -29,3 +29,8 @@ done
 ```sh
 uvicorn app.main:app --reload
 ```
+
+## Deploying
+
+secrets.EC2_SSH_PRIVATE_KEY
+secrets.SSH_HOST
