@@ -111,7 +111,7 @@ jobs:
 
             sudo cp ./autograder.classla.org/nginx.conf /etc/nginx/sites-available/fastapi
 
-            rm /etc/nginx/sites-enabled/fastapi
+            sudo rm /etc/nginx/sites-enabled/fastapi
             sudo ln -s /etc/nginx/sites-available/fastapi /etc/nginx/sites-enabled/
             sudo nginx -t
             sudo systemctl restart nginx
