@@ -30,7 +30,14 @@ done
 uvicorn app.main:app --reload
 ```
 
-## Deploying
+## Deploying to EC2
 
-secrets.EC2_SSH_PRIVATE_KEY
+1. Start an EC2 instance.
+2. add ssh key TODO
+3. Update the following secret variables:
+
+```secrets.EC2_SSH_PRIVATE_KEY
 secrets.SSH_HOST
+```
+
+4. SSL cert TODO
