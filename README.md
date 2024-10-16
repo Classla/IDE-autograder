@@ -33,11 +33,19 @@ uvicorn app.main:app --reload
 ## Deploying to EC2
 
 1. Start an EC2 instance.
-2. add ssh key TODO
-3. Update the following secret variables:
+2. Update the following secret variables:
 
-```secrets.EC2_SSH_PRIVATE_KEY
-secrets.SSH_HOST
+`secrets.EC2_SSH_PRIVATE_KEY` - SHH Private Key for server instance.
+`secrets.SSH_HOST` - IP Address or FQDN of server
+
+3. Run `ci-cd.yaml` script once. This is for initial environment setup.
+
+4. SSL cert - Run the following on the server:
+
+```
+sudo apt-get install certbot python3-certbot-nginx -y
+sudo certbot --nginx
+sudo nginx -t
 ```
 
-4. SSL cert TODO
+Note: Future deployments will automatically restart the cert.
