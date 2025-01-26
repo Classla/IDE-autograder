@@ -9,6 +9,8 @@ from app.autograder_request_bodies import InputOutputRequestBody, UnitTestReques
 from app.logging_config import logger
 from app.utils import colors
 
+from datetime import datetime
+
 load_dotenv()
 
 supabase: Client = create_client(
@@ -96,6 +98,8 @@ def run_input_output_container(submission: InputOutputRequestBody) -> dict:
                 "autograde_mode": "input_output",
                 "msg": "Time limit exceeded.",
                 "points": 0,
+                "timestamp": datetime.now().isoformat(),
+
             }
 
         else:
@@ -126,6 +130,7 @@ def run_input_output_container(submission: InputOutputRequestBody) -> dict:
                     if stdout_diff == stderr_diff == ""
                     else 0
                 ),
+                "timestamp": datetime.now().isoformat(),
             }
 
     except Exception as e:
@@ -165,6 +170,7 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
                 "autograde_mode": "unit_test",
                 "msg": "Time limit exceeded.",
                 "points": 0,
+                "timestamp": datetime.now().isoformat(),
             }
 
         else:
@@ -189,6 +195,7 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
                 "autograde_mode": "unit_test",
                 "unit_test_results": unit_test_results.output.decode("utf-8"),
                 "points": points,
+                "timestamp": datetime.now().isoformat(),
             }
 
     except Exception as e:
