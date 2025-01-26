@@ -90,6 +90,7 @@ unit_test_flawed_python = {
 
 input_output_java = {
     "block_uuid": block_uuid,
+    "test_uuid": test_uuid,
     "timeout": TIMEOUT,
     "student_files": {
         "Main.java": 'import modules.Module;import java.util.Scanner;public class Main {public static void main(String[] args) {Scanner scanner = new Scanner(System.in);System.out.print("");String name = scanner.nextLine();System.out.printf("hello, %s! number: %d %d%n", name, Mod.APPLE, Module.ORANGE);scanner.close();}}',
@@ -121,6 +122,7 @@ with open("tests/code_examples/java/TestAdd2.java", "r", encoding="utf-8") as fi
 
 unit_test_java = {
     "block_uuid": block_uuid,
+    "test_uuid": test_uuid,
     "timeout": TIMEOUT,
     "student_files": {"Add.java": script_java},
     "language": "java",
@@ -134,6 +136,7 @@ unit_test_java = {
 
 unit_test_flawed_java = {
     "block_uuid": block_uuid,
+    "test_uuid": test_uuid,
     "timeout": TIMEOUT,
     "student_files": {"Add.java": script_flawed_java},
     "language": "java",
