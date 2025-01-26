@@ -23,6 +23,7 @@ app/
 ```json
 {
   "block_uuid": "block_uuid",
+  "test_uuid": "test_uuid",
   "timeout": "int in seconds",
   "student_files": {
     "filename": "file contents"

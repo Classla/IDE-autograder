@@ -19,14 +19,16 @@ supabase: Client = create_client(
 AUTOGRADER_TABLE = "autograder_results"
 
 
-def send_to_supabase(current_result: dict, block_uuid: UUID) -> None:
+def send_to_supabase(current_result: dict, block_uuid: UUID, test_uuid: UUID) -> None:
     """handler for updating the supabase table with container output."""
     target_block_uuid = str(block_uuid)
+    target_test_uuid = str(test_uuid)
     try:
         target_row: dict = (
             supabase.table(AUTOGRADER_TABLE)
             .select("*")
             .eq("block_uuid", target_block_uuid)
+            .eq("test_uuid", target_test_uuid)
             .execute()
             .data
         )
@@ -36,6 +38,7 @@ def send_to_supabase(current_result: dict, block_uuid: UUID) -> None:
                     "current_result": current_result,
                     "result_history": [],
                     "block_uuid": target_block_uuid,
+                    "test_uuid": target_test_uuid,
                 }
             ).execute()
 
@@ -46,7 +49,7 @@ def send_to_supabase(current_result: dict, block_uuid: UUID) -> None:
                     "result_history": target_row[0]["result_history"]
                     + [target_row[0]["current_result"]],
                 }
-            ).eq("block_uuid", target_block_uuid).execute()
+            ).eq("block_uuid", target_block_uuid).eq("test_uuid", target_test_uuid).execute()
         else:
             raise Exception(
                 "Warning: Table representation is invalid. Multiple rows with matching foreign keys."

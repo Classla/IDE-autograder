@@ -1,8 +1,10 @@
 block_uuid = "7ceb06fa-5d44-4fc2-8aa9-2aaa8b743e65"
+test_uuid =  "7ceb06fa-5d44-4fc2-8aa9-2aaa8b743e66" # changed last character just for a sample
 TIMEOUT = 10
 
 input_output_python = {
     "block_uuid": block_uuid,
+    "test_uuid": test_uuid,
     "timeout": TIMEOUT,
     "student_files": {
         "main.py": 'from mod import apple; from modules.module import orange; print(f"hello, {input()}! number: {apple} {orange}")',
@@ -27,6 +29,7 @@ input_output_python = {
 
 timeout_code = {
     "block_uuid": block_uuid,
+    "test_uuid": test_uuid,
     "timeout": 1,
     "student_files": {
         "main.py": "import time; time.sleep(2)",
@@ -59,6 +62,7 @@ with open("tests/code_examples/python/test_add2.py", "r", encoding="utf-8") as f
 
 unit_test_python = {
     "block_uuid": block_uuid,
+    "test_uuid": test_uuid,
     "timeout": TIMEOUT,
     "student_files": {"add.py": script_python},
     "language": "python",
@@ -72,6 +76,7 @@ unit_test_python = {
 
 unit_test_flawed_python = {
     "block_uuid": block_uuid,
+    "test_uuid": test_uuid,
     "timeout": TIMEOUT,
     "student_files": {"add.py": script_flawed_python},
     "language": "python",

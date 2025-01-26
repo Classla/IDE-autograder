@@ -45,7 +45,7 @@ def autograder_job(submission: AutograderRequestBody) -> None:
             "msg": "Autograder failed to run.",
         }
 
-    send_to_supabase(result, submission.block_uuid)
+    send_to_supabase(result, submission.block_uuid, submission.test_uuid)
     logger.info("Successfully wrote to table.")
 
 

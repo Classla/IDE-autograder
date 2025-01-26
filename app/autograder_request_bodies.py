@@ -29,6 +29,9 @@ class AutograderRequestBody(BaseModel):
     block_uuid: UUID = Field(
         ..., description="UUID for the block that the code lives on."
     )
+    test_uuid: UUID = Field(
+        ..., description="UUID for the specific test within that block"
+    )
     timeout: int = Field(..., ge=1, le=30, description="Timeout in seconds")
     student_files: Dict[str, Union[str, Dict]] = Field(
         ...,
