@@ -28,7 +28,7 @@ def send_to_supabase(current_result: dict, block_uuid: UUID, test_uuid: UUID) ->
             supabase.table(AUTOGRADER_TABLE)
             .select("*")
             .eq("block_uuid", target_block_uuid)
-            .eq("test_uuid", target_test_uuid)
+            .eq("autograder_test_uuid", target_test_uuid)
             .execute()
             .data
         )
@@ -49,7 +49,7 @@ def send_to_supabase(current_result: dict, block_uuid: UUID, test_uuid: UUID) ->
                     "result_history": target_row[0]["result_history"]
                     + [target_row[0]["current_result"]],
                 }
-            ).eq("block_uuid", target_block_uuid).eq("test_uuid", target_test_uuid).execute()
+            ).eq("block_uuid", target_block_uuid).eq("autograder_test_uuid", target_test_uuid).execute()
         else:
             raise Exception(
                 "Warning: Table representation is invalid. Multiple rows with matching foreign keys."
