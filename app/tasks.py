@@ -38,7 +38,7 @@ def send_to_supabase(current_result: dict, block_uuid: UUID, test_uuid: UUID) ->
                     "current_result": current_result,
                     "result_history": [],
                     "block_uuid": target_block_uuid,
-                    "test_uuid": target_test_uuid,
+                    "autograder_test_uuid": target_test_uuid,
                 }
             ).execute()
 
