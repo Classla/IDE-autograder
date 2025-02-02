@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
 from dotenv import load_dotenv
@@ -39,10 +40,12 @@ def autograder_job(submission: AutograderRequestBody) -> None:
 
     try:
         result = execute_container_runtime(submission)
-    except Exception:
+    except Exception as e:
         result = {
             "autograde_mode": "unit_test",
             "msg": "Autograder failed to run.",
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e),
         }
 
     send_to_supabase(result, submission.block_uuid, submission.test_uuid)
