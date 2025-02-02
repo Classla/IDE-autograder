@@ -202,7 +202,7 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
         logger.error(
             f"An error occured during the execution of a docker container: {e}"
         )
-        raise Exception(f"An error occured during the execution of a docker container: {e}") from e
+        raise Exception(f"An error occured during the execution of a docker container: {str(e)}") from e
     finally:
         # Container garbage collection
         del container
