@@ -10,12 +10,20 @@ RUN apt-get update && apt-get install -y \
     xvfb \
     && rm -rf /var/lib/apt/lists/*
 
-# Create necessary directories
-RUN mkdir src
-RUN mkdir tests
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/src /app/tests && \
+    chmod 777 /app/src /app/tests
 
-# Set Python path
+# Create a non-root user
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+
+# Set environment variables
 ENV PYTHONPATH=/app/src:/app/tests
+ENV PYTHONUNBUFFERED=1
 
 # Install Python packages
 RUN pip install --no-cache-dir pydraw
+
+# Switch to non-root user
+USER appuser

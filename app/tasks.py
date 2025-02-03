@@ -141,7 +141,6 @@ def run_input_output_container(submission: InputOutputRequestBody) -> dict:
         # dispose container
         del container
 
-
 def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
     """
     Allocates a container, runs the autograding session inside, and send the output to supabase.
@@ -149,21 +148,39 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
     try:
         # start up container
         container = create_autograder_container_runtime(submission.language)
+        
+        # Load unit test driver with explicit error handling
+        try:
+            container.load_unit_test_driver()
+        except Exception as e:
+            logger.error(f"Failed to load unit test driver: {str(e)}")
+            raise Exception(f"Unit test driver loading failed: {str(e)}") from e
 
-        container.load_unit_test_driver()
+        # Write student files with explicit error handling
+        try:
+            container.write_file_tree("src/", submission.student_files)
+        except Exception as e:
+            logger.error(f"Failed to write student files: {str(e)}")
+            raise Exception(f"Student file writing failed: {str(e)}") from e
 
-        # Write student files
-        container.write_file_tree("src/", submission.student_files)
-
-        # Write test files
+        # Write test files with explicit error handling
         for file_name, file_contents in submission.unit_test_files.items():
-            file_contents = file_contents.replace('"', '\\"')
-            container.write_file(file_contents, f"tests/{file_name}")
+            try:
+                file_contents = file_contents.replace('"', '\\"')
+                container.write_file(file_contents, f"tests/{file_name}")
+            except Exception as e:
+                logger.error(f"Failed to write test file {file_name}: {str(e)}")
+                raise Exception(f"Test file writing failed for {file_name}: {str(e)}") from e
 
-        # run unit tests
-        unit_test_results = container.run_unit_tests(
-            timeout=submission.timeout, test_files=submission.unit_test_files
-        )
+        # Run unit tests with explicit error handling
+        try:
+            unit_test_results = container.run_unit_tests(
+                timeout=submission.timeout, 
+                test_files=submission.unit_test_files
+            )
+        except Exception as e:
+            logger.error(f"Failed to run unit tests: {str(e)}")
+            raise Exception(f"Unit test execution failed: {str(e)}") from e
 
         if unit_test_results.exit_code == 124:
             return {
@@ -173,36 +190,30 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
                 "timestamp": datetime.now().isoformat(),
             }
 
-        else:
+        # Read results with explicit error handling
+        try:
             num_tests = int(container.read_file("num_tests.txt"))
             num_tests_passed = int(container.read_file("num_tests_passed.txt"))
+        except Exception as e:
+            logger.error(f"Failed to read test results: {str(e)}")
+            raise Exception(f"Test results reading failed: {str(e)}") from e
 
-            if submission.autograding_config.point_calculation == "fractional":
-                points = (
-                    num_tests_passed / num_tests
-                ) * submission.autograding_config.total_points
-            else:
-                points = (
-                    submission.autograding_config.total_points
-                    if (num_tests == num_tests_passed)
-                    else 0
-                )
+        if submission.autograding_config.point_calculation == "fractional":
+            points = (num_tests_passed / num_tests) * submission.autograding_config.total_points
+        else:
+            points = submission.autograding_config.total_points if (num_tests == num_tests_passed) else 0
 
-            logger.info(
-                f"Unit test output: {colors.YELLOW}{unit_test_results.output.decode('utf-8')}{colors.RESET}"
-            )
-            return {
-                "autograde_mode": "unit_test",
-                "unit_test_results": unit_test_results.output.decode("utf-8"),
-                "points": points,
-                "timestamp": datetime.now().isoformat(),
-            }
+        return {
+            "autograde_mode": "unit_test",
+            "unit_test_results": unit_test_results.output.decode('utf-8'),
+            "points": points,
+            "timestamp": datetime.now().isoformat(),
+        }
 
     except Exception as e:
-        logger.error(
-            f"An error occured during the execution of a docker container: {e}"
-        )
-        raise Exception(f"An error occured during the execution of a docker container: {str(e)}") from e
+        logger.error(f"Container execution failed: {str(e)}")
+        raise Exception(f"Container execution failed with detailed error: {str(e)}") from e
     finally:
         # Container garbage collection
-        del container
+        if 'container' in locals():
+            del container
