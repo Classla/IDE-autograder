@@ -11,8 +11,8 @@ Repo configurations:
 
 ### Install Dependencies.
 
-```sh
-pip install -r requirements.txt
+```bash
+pip install -r requirements.txt # In the repository directory
 ```
 
 ### Build all docker containers.
@@ -26,7 +26,7 @@ done
 
 ### Start the FastAPI server.
 
-```sh
+```bash
 uvicorn app.main:app --reload
 ```
 
@@ -42,7 +42,7 @@ uvicorn app.main:app --reload
 
 4. SSL cert - Run the following on the server:
 
-```
+```bash
 sudo apt-get install certbot python3-certbot-nginx -y
 sudo certbot --nginx
 sudo nginx -t
