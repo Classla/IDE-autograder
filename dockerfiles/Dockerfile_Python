@@ -8,11 +8,10 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     python3-tk \
     xvfb \
-    && rm -rf /var/lib/apt/lists/* && \
-    # mkdir -p /app/src /app/tests && \
-    chmod 777 /app \
-    useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app
+    && rm -rf /var/lib/apt/lists/* \
+    && chmod 777 /app \
+    && useradd -m -u 1000 appuser \
+    && chown -R appuser:appuser /app
 
 # Set environment variables
 # ENV PYTHONPATH=/app/src:/app/tests
