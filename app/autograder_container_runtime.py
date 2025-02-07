@@ -27,7 +27,9 @@ class AutograderContainerRuntime(ABC):
         exit_code = exec_result.exit_code
         output = exec_result.output
         if exit_code != 0:
-            logger.error(f"Command failed with exit code {exit_code}: \n{output}")
+            logger.error(
+                f"Docker shell command failed with exit code {exit_code}: \n{output}"
+            )
             raise RuntimeError()
 
     def run_bash(self, cmd: str) -> ExecResult:
@@ -40,8 +42,8 @@ class AutograderContainerRuntime(ABC):
         Writes (contents) into the file at (path) using base64 encoding to handle special characters.
         """
         # Encode the contents as base64
-        encoded_contents = base64.b64encode(contents.encode('utf-8')).decode('utf-8')
-        
+        encoded_contents = base64.b64encode(contents.encode("utf-8")).decode("utf-8")
+
         # Use base64 decode in the container to write the file
         exec_result = self._container.exec_run(
             f"sh -c 'echo {encoded_contents} | base64 -d > {path}'"
@@ -95,9 +97,14 @@ class AutograderContainerRuntimePython(AutograderContainerRuntime):
             self.write_file(file.read(), "unit_test_driver.py")
 
     def run_unit_tests(self, timeout: int, test_files: dict) -> ExecResult:
-        return self.run_bash(
+        exec_result = self.run_bash(
             f"xvfb-run -a timeout {timeout}s python unit_test_driver.py {' '.join([file_name.split('.')[0] for file_name, file_contents in test_files.items()])}"
         )
+        self._check_success(exec_result)
+
+        # raise Exception(self.run_bash("ls").output.decode("utf-8"))
+
+        return exec_result
 
 
 class AutograderContainerRuntimeJava(AutograderContainerRuntime):

@@ -8,18 +8,15 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     python3-tk \
     xvfb \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create necessary directories with proper permissions
-RUN mkdir -p /app/src /app/tests && \
-    chmod 777 /app/src /app/tests
-
-# Create a non-root user
-RUN useradd -m -u 1000 appuser && \
+    && rm -rf /var/lib/apt/lists/* && \
+    # mkdir -p /app/src /app/tests && \
+    chmod 777 /app \
+    useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
 
 # Set environment variables
-ENV PYTHONPATH=/app/src:/app/tests
+# ENV PYTHONPATH=/app/src:/app/tests
+ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 # Install Python packages
