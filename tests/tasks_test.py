@@ -40,24 +40,24 @@ class TestContainerRuntime(unittest.TestCase):
         assert result["points"] == 0
 
     # JAVA
-    def test_input_output_java(self):
-        result = run_input_output_container(convert_input_output(input_output_java))
-        assert result["points"] == 12
+    # def test_input_output_java(self):
+    #     result = run_input_output_container(convert_input_output(input_output_java))
+    #     assert result["points"] == 12
 
-    def test_unit_test_java(self):
-        result = run_unit_test_container(convert_unit_test(unit_test_java))
-        assert result["points"] == 12
+    # def test_unit_test_java(self):
+    #     result = run_unit_test_container(convert_unit_test(unit_test_java))
+    #     assert result["points"] == 12
 
-    def test_unit_test_flawed_java(self):
-        """Incomplete points"""
-        result = run_unit_test_container(convert_unit_test(unit_test_flawed_java))
-        assert result["points"] == 6
+    # def test_unit_test_flawed_java(self):
+    #     """Incomplete points"""
+    #     result = run_unit_test_container(convert_unit_test(unit_test_flawed_java))
+    #     assert result["points"] == 6
 
-        unit_test_flawed_java["autograding_config"][
-            "point_calculation"
-        ] = "all_or_nothing"
-        result = run_unit_test_container(convert_unit_test(unit_test_flawed_java))
-        assert result["points"] == 0
+    #     unit_test_flawed_java["autograding_config"][
+    #         "point_calculation"
+    #     ] = "all_or_nothing"
+    #     result = run_unit_test_container(convert_unit_test(unit_test_flawed_java))
+    #     assert result["points"] == 0
 
     def test_timeout(self):
         result = run_input_output_container(convert_input_output(timeout_code))

@@ -6,8 +6,7 @@ WORKDIR /app
 
 # Install system dependencies including TKinter and xvfb
 RUN apt-get update && apt-get install -y \
-    python3-tk \
-    xvfb \
+    python3-tk xvfb \
     && rm -rf /var/lib/apt/lists/* \
     && chmod 777 /app \
     && useradd -m -u 1000 appuser \

@@ -87,7 +87,7 @@ class AutograderContainerRuntime(ABC):
 class AutograderContainerRuntimePython(AutograderContainerRuntime):
     def run_code(self, timeout: int, entry_file: str) -> ExecResult:
         return self.run_bash(
-            f"xvfb-run -a timeout {timeout}s python src/{entry_file} < teacher_stdin.txt >student_stdout.txt 2>student_stderr.txt"
+            f"xvfb-run -a timeout {timeout}s python {entry_file} < teacher_stdin.txt >student_stdout.txt 2>student_stderr.txt"
         )
 
     def load_unit_test_driver(self):

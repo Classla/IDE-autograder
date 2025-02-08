@@ -88,7 +88,7 @@ def run_input_output_container(submission: InputOutputRequestBody) -> dict:
         container.write_file(expected_stderr, "expected_stderr.txt")
         container.write_file(teacher_stdin, "teacher_stdin.txt")
 
-        container.write_file_tree("src/", submission.student_files)
+        container.write_file_tree("", submission.student_files)
 
         script_execution = container.run_code(
             timeout=submission.timeout,
