@@ -8,6 +8,7 @@ from tests.code_examples.sample_request_bodies import (
     unit_test_java,
     unit_test_python,
     unit_test_flawed_python,
+    unit_test_eof_python,
     unit_test_flawed_java,
 )
 from tests.utils.json_to_object import convert_input_output, convert_unit_test
@@ -37,6 +38,12 @@ class TestContainerRuntime(unittest.TestCase):
             "point_calculation"
         ] = "all_or_nothing"
         result = run_unit_test_container(convert_unit_test(unit_test_flawed_python))
+        assert result["points"] == 0
+
+    def test_unit_test_eof_python(self):
+        """"""
+        result = run_unit_test_container(convert_unit_test(unit_test_eof_python))
+        assert "EOF" in result["msg"]
         assert result["points"] == 0
 
     # JAVA

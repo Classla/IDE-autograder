@@ -100,9 +100,8 @@ class AutograderContainerRuntimePython(AutograderContainerRuntime):
         exec_result = self.run_bash(
             f"xvfb-run -a timeout {timeout}s python unit_test_driver.py {' '.join([file_name.split('.')[0] for file_name, file_contents in test_files.items()])}"
         )
-        self._check_success(exec_result)
 
-        # raise Exception(self.run_bash("ls").output.decode("utf-8"))
+        # DO NOT check_success().
 
         return exec_result
 

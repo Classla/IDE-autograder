@@ -151,40 +151,18 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
         # start up container
         container = create_autograder_container_runtime(submission.language)
 
-        # Load unit test driver with explicit error handling
-        try:
-            container.load_unit_test_driver()
-        except Exception as e:
-            logger.error(f"Failed to load unit test driver: {str(e)}")
-            raise Exception(f"Unit test driver loading failed: {str(e)}") from e
+        container.load_unit_test_driver()
 
-        # Write student files with explicit error handling
-        try:
-            container.write_file_tree("", submission.student_files)
-        except Exception as e:
-            logger.error(f"Failed to write student files: {str(e)}")
-            raise Exception(f"Student file writing failed: {str(e)}") from e
+        container.write_file_tree("", submission.student_files)
 
         # Write test files with explicit error handling
         for file_name, file_contents in submission.unit_test_files.items():
-            try:
-                container.write_file(file_contents, f"{file_name}")
-            except Exception as e:
-                logger.error(f"Failed to write test file {file_name}: {str(e)}")
-                raise Exception(
-                    f"Test file writing failed for {file_name}: {str(e)}"
-                ) from e
-
-        # logger.error(container.read_file("tests/test.py"))
+            container.write_file(file_contents, f"{file_name}")
 
         # Run unit tests with explicit error handling
-        try:
-            unit_test_results = container.run_unit_tests(
-                timeout=submission.timeout, test_files=submission.unit_test_files
-            )
-        except Exception as e:
-            logger.error(f"Failed to run unit tests: {str(e)}")
-            raise Exception(f"Unit test execution failed: {str(e)}") from e
+        unit_test_results = container.run_unit_tests(
+            timeout=submission.timeout, test_files=submission.unit_test_files
+        )
 
         if unit_test_results.exit_code == 124:
             return {
@@ -194,19 +172,23 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
                 "timestamp": datetime.now().isoformat(),
             }
 
-        # Read results with explicit error handling
-        try:
-            num_tests = int(container.read_file("num_tests.txt"))
-            num_tests_passed = int(container.read_file("num_tests_passed.txt"))
-        except Exception as e:
-            logger.error(f"Failed to read test results: {str(e)}")
-            raise Exception(f"Test results reading failed: {str(e)}") from e
+        if unit_test_results.exit_code == 1:
+            logger.info(unit_test_results.output)
+            return {
+                "autograde_mode": "unit_test",
+                "msg": unit_test_results.output.decode("utf-8"),
+                "points": 0,
+                "timestamp": datetime.now().isoformat(),
+            }
+
+        num_tests = int(container.read_file("num_tests.txt"))
+        num_tests_passed = int(container.read_file("num_tests_passed.txt"))
 
         if submission.autograding_config.point_calculation == "fractional":
             points = (
                 num_tests_passed / num_tests
             ) * submission.autograding_config.total_points
-        else:
+        else:  # all or nothing
             points = (
                 submission.autograding_config.total_points
                 if (num_tests == num_tests_passed)
@@ -217,6 +199,7 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
 
         return {
             "autograde_mode": "unit_test",
+            "msg": "Unit tests ran successfully.",
             "unit_test_results": unit_test_results.output.decode("utf-8"),
             "points": points,
             "timestamp": datetime.now().isoformat(),
