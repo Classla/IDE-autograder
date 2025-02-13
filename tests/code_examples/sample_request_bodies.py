@@ -1,5 +1,7 @@
 block_uuid = "7ceb06fa-5d44-4fc2-8aa9-2aaa8b743e65"
-test_uuid =  "7ceb06fa-5d44-4fc2-8aa9-2aaa8b743e66" # changed last character just for a sample
+test_uuid = (
+    "7ceb06fa-5d44-4fc2-8aa9-2aaa8b743e66"  # changed last character just for a sample
+)
 TIMEOUT = 10
 
 input_output_python = {
@@ -53,6 +55,8 @@ timeout_code = {
 
 with open("tests/code_examples/python/add.py", "r", encoding="utf-8") as file:
     script_python = file.read()
+with open("tests/code_examples/python/add_eof.py", "r", encoding="utf-8") as file:
+    script_eof_python = file.read()
 with open("tests/code_examples/python/add_flawed.py", "r", encoding="utf-8") as file:
     script_flawed_python = file.read()
 with open("tests/code_examples/python/test_add.py", "r", encoding="utf-8") as file:
@@ -72,6 +76,20 @@ unit_test_python = {
     },
     "unit_test_config": {},
     "unit_test_files": {"test_add.py": test_python, "test_add2.py": test_python2},
+}
+
+unit_test_eof_python = {
+    "block_uuid": block_uuid,
+    "test_uuid": test_uuid,
+    "timeout": TIMEOUT,
+    "student_files": {"add.py": script_eof_python},
+    "language": "python",
+    "autograding_config": {
+        "total_points": 12,
+        "point_calculation": "fractional",
+    },
+    "unit_test_config": {},
+    "unit_test_files": {"test_add.py": test_python},
 }
 
 unit_test_flawed_python = {
