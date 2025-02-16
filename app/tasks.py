@@ -122,6 +122,7 @@ def run_input_output_container(submission: InputOutputRequestBody) -> dict:
             return {
                 "autograde_mode": "input_output",
                 "msg": "Input/Output tests ran successfully.",
+                "status": 200,
                 "stdout_diff": stdout_diff,
                 "stderr_diff": stderr_diff,
                 "student_stdout": student_stdout,
@@ -199,6 +200,7 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
 
         return {
             "autograde_mode": "unit_test",
+            "status": 200,
             "msg": "Unit tests ran successfully.",
             "unit_test_results": unit_test_results.output.decode("utf-8"),
             "points": points,
