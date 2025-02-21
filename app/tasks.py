@@ -183,7 +183,7 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
 
         num_tests = int(container.read_file("num_tests.txt"))
         num_tests_passed = int(container.read_file("num_tests_passed.txt"))
-        raise ValueError()
+
         if submission.autograding_config.point_calculation == "fractional":
             points = (
                 num_tests_passed / num_tests
