@@ -184,7 +184,7 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
 
         num_tests = int(container.read_file("num_tests.txt"))
         num_tests_passed = int(container.read_file("num_tests_passed.txt"))
-
+        raise ValueError()
         if submission.autograding_config.point_calculation == "fractional":
             points = (
                 num_tests_passed / num_tests
@@ -196,7 +196,7 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
                 else 0
             )
 
-        logger.error(unit_test_results.output.decode("utf-8"))
+        # logger.error(unit_test_results.output.decode("utf-8"))
 
         return {
             "autograde_mode": "unit_test",
@@ -208,7 +208,7 @@ def run_unit_test_container(submission: UnitTestRequestBody) -> dict:
         }
 
     except Exception as e:
-        logger.error(f"Container execution failed: {str(e)}")
+        logger.error(f"Container execution failed: {str(e)}", exc_info=True)
         raise Exception(
             f"Container execution failed with detailed error: {str(e)}"
         ) from e
